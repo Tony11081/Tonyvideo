@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright
 html, out = sys.argv[1], sys.argv[2]
 fps = int(sys.argv[3]) if len(sys.argv) > 3 else 30
 with sync_playwright() as p:
-    b = p.chromium.launch()
+    b = p.chromium.launch(args=['--allow-file-access-from-files'])  # local product images
     pg = b.new_page()
     pg.goto('file://' + html)
     pg.wait_for_function('document.fonts.ready.then(() => true)')

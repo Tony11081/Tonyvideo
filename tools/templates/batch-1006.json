@@ -30,6 +30,11 @@
     "#C978B5",
     "#E7A33E"
    ]
+  },
+  "image": "NCS-SC-LC093C-tom-thumb-lettuce-AI-v2.png",
+  "music": {
+   "style": "garden",
+   "seed": 1
   }
  },
  {
@@ -63,6 +68,11 @@
     "#9C7CC9",
     "#7A5BA6"
    ]
+  },
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "music": {
+   "style": "garden",
+   "seed": 2
   }
  },
  {
@@ -98,6 +108,10 @@
     "#B8456A",
     "#F4F0F0"
    ]
+  },
+  "music": {
+   "style": "garden",
+   "seed": 3
   }
  },
  {
@@ -132,6 +146,13 @@
    "flower": [
     "#8E3C8F"
    ]
+  },
+  "image": "T172-Pin-N07-rev1.png",
+  "heroFocus": 1,
+  "endFocus": 1,
+  "music": {
+   "style": "garden",
+   "seed": 4
   }
  },
  {
@@ -159,6 +180,11 @@
     "#9C7CC9",
     "#6E4FA0"
    ]
+  },
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "music": {
+   "style": "garden",
+   "seed": 5
   }
  },
  {
@@ -189,7 +215,15 @@
    "flower": [
     "#B5562F"
    ]
-  }
+  },
+  "image": "01-natural-wood-tufted-accent-chair.png",
+  "photoFocus": 0.5,
+  "endFocus": 0.5,
+  "music": {
+   "style": "home",
+   "seed": 6
+  },
+  "bandFocus": 0.5
  },
  {
   "id": "FP-H3",
@@ -220,7 +254,15 @@
    "flower": [
     "#5E6B4E"
    ]
-  }
+  },
+  "image": "03-brown-storage-nightstand.png",
+  "photoFocus": 0.5,
+  "endFocus": 0.5,
+  "music": {
+   "style": "home",
+   "seed": 7
+  },
+  "bandFocus": 0.55
  },
  {
   "id": "FP-H7",
@@ -251,7 +293,15 @@
    "flower": [
     "#4F6D86"
    ]
-  }
+  },
+  "image": "07-silver-wall-mirror.png",
+  "photoFocus": 0.3,
+  "endFocus": 0.25,
+  "music": {
+   "style": "home",
+   "seed": 8
+  },
+  "bandFocus": 0.22
  },
  {
   "id": "FP-H8",
@@ -281,7 +331,15 @@
    "flower": [
     "#8A6A3F"
    ]
-  }
+  },
+  "image": "08-black-round-wall-mirror.png",
+  "photoFocus": 0.4,
+  "endFocus": 0.35,
+  "music": {
+   "style": "home",
+   "seed": 9
+  },
+  "bandFocus": 0.3
  },
  {
   "id": "V-F01",
@@ -304,6 +362,14 @@
    "flower": [
     "#4F6D86"
    ]
+  },
+  "image": "07-silver-wall-mirror.png",
+  "photoFocus": 0.05,
+  "photoZoom": 1.25,
+  "endFocus": 0.25,
+  "music": {
+   "style": "home",
+   "seed": 10
   }
  }
 ]

@@ -4,7 +4,7 @@
 </head><body>
 <canvas id="c" width="1080" height="1920"></canvas>
 <!-- CONFIG is injected by tools/build.py; edit the JSON, not the drawing code. -->
-<script>window.CONFIG = /*CONFIG*/{"id": "FP-H1", "slug": "accent-chair", "kind": "product", "tag": "BEFORE YOU ORDER", "domain": "noralanehome.com", "title": "Natural Wood Tufted Accent Chair: 3 things to check", "dims": "23.2 × 24 × 26.3 in", "checks": ["Measure the seating spot and the delivery route.", "Confirm which figure is width, depth and height, plus seat height.", "Assembly isn't stated on the listing — ask us."], "product": "Natural Wood Tufted Accent Chair", "endKicker": "See the listing", "endNote": "Link in the description", "url": "https://noralanehome.com/product/natural-wood-tufted-accent-chair-b346p320760/", "palette": {"bg": "#F7F3EE", "ink": "#2A2622", "accent": "#B5562F", "accentLight": "#F0C9A8", "dark": "#2A2622", "soft": "#E9E1D6", "muted": "#7A7066", "flower": ["#B5562F"]}}/*END*/;</script>
+<script>window.CONFIG = /*CONFIG*/{"id": "FP-H1", "slug": "accent-chair", "kind": "product", "tag": "BEFORE YOU ORDER", "domain": "noralanehome.com", "title": "Natural Wood Tufted Accent Chair: 3 things to check", "dims": "23.2 × 24 × 26.3 in", "checks": ["Measure the seating spot and the delivery route.", "Confirm which figure is width, depth and height, plus seat height.", "Assembly isn't stated on the listing — ask us."], "product": "Natural Wood Tufted Accent Chair", "endKicker": "See the listing", "endNote": "Link in the description", "url": "https://noralanehome.com/product/natural-wood-tufted-accent-chair-b346p320760/", "palette": {"bg": "#F7F3EE", "ink": "#2A2622", "accent": "#B5562F", "accentLight": "#F0C9A8", "dark": "#2A2622", "soft": "#E9E1D6", "muted": "#7A7066", "flower": ["#B5562F"]}, "image": "01-natural-wood-tufted-accent-chair.png", "photoFocus": 0.5, "endFocus": 0.5, "music": {"style": "home", "seed": 6}, "bandFocus": 0.5}/*END*/;</script>
 <script>
 // Team video engine: one canvas, one pure draw(t). Same t -> same frame.
 // Scene kinds: qa (seed Q&A card), product (furniture "before you order" card),
@@ -17,7 +17,21 @@ const FAM = '"Noto Sans CJK SC","Noto Sans CJK JP",sans-serif';
 const END = CFG.endHold || 8;          // end card holds the URL for 8 s
 const BODY = CFG.body || 12;           // seconds before the end card
 window.DURATION = BODY + END;
-window.READY = true;
+// Product images (our own listing photos / approved illustrations) sit next to source.html.
+const IMG = {};
+const want = [CFG.image].filter(Boolean);
+window.READY = want.length === 0;
+let pending = want.length;
+want.forEach(n => { const im = new Image(); im.onload = () => { IMG[n] = im; if (--pending === 0) { window.READY = true; draw(0); } }; im.src = n; });
+const photo = () => IMG[CFG.image];
+// Draw image cropped to fill a rounded box. fy = vertical focus (0 top, 1 bottom), z = zoom.
+function cover(im, dx, dy, dw, dh, r, fy = .5, z = 1, alpha = 1) {
+  if (!im || alpha <= 0) return;
+  const s = Math.max(dw / im.width, dh / im.height) * z, sw = dw / s, sh = dh / s;
+  const sx = (im.width - sw) / 2, sy = (im.height - sh) * fy;
+  x.save(); x.globalAlpha = alpha; rr(dx, dy, dw, dh, r); x.clip();
+  x.drawImage(im, sx, sy, sw, sh, dx, dy, dw, dh); x.restore();
+}
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -72,16 +86,23 @@ function endCard(t) {
   const P = CFG.palette;
   x.globalAlpha = p; x.fillStyle = P.dark; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
   const r = inOut(t, BODY, 0);
-  text(CFG.endKicker, 90, 560 + r.dy, 40, 700, P.accentLight, 900, 52, r.a);
-  text(CFG.product, 90, 640 + r.dy, 62, 900, '#FFFFFF', 900, 78, r.a);
+  const im = photo();
+  let ky = 560;
+  if (im) {                                   // our product, big, slow push-in
+    cover(im, 90, 250 + r.dy, 900, 600, 28, CFG.endFocus ?? .5, 1 + .05 * prog(t, BODY, BODY + END), r.a);
+    ky = 900;
+  }
+  text(CFG.endKicker, 90, ky + r.dy, 40, 700, P.accentLight, 900, 52, r.a);
+  const nb = text(CFG.product, 90, ky + 64 + r.dy, 58, 900, '#FFFFFF', 900, 72, r.a) - r.dy;
   const u = inOut(t, BODY + .5, 0);
+  const dy0 = Math.max(nb + 50, im ? 1130 : 1040);
   let us = 112; font(us, 900); while (x.measureText(CFG.domain).width > 900) { us -= 4; font(us, 900); }
   x.globalAlpha = u.a; x.fillStyle = '#FFFFFF'; x.textBaseline = 'top';
-  x.fillText(CFG.domain, 90, 1040 + u.dy);
+  x.fillText(CFG.domain, 90, dy0 + u.dy);
   const uw = x.measureText(CFG.domain).width;
-  x.fillStyle = P.accentLight; x.fillRect(90, 1040 + us * 1.18 + u.dy, uw * prog(t, BODY + .8, BODY + 1.6), 10);
+  x.fillStyle = P.accentLight; x.fillRect(90, dy0 + us * 1.18 + u.dy, uw * prog(t, BODY + .8, BODY + 1.6), 10);
   x.globalAlpha = 1;
-  text(CFG.endNote, 90, 1240 + u.dy, 38, 400, 'rgba(255,255,255,.75)', 900, 50, u.a);
+  text(CFG.endNote, 90, dy0 + us * 1.18 + 40 + u.dy, 38, 400, 'rgba(255,255,255,.75)', 900, 50, u.a);
 }
 
 // ---------- seed Q&A visuals ----------
@@ -173,6 +194,8 @@ function drawQA(t) {
   const qb = text(CFG.question, 90, 440 + q.dy, qs, 900, P.ink, 900, qs * 1.18, q.a) - q.dy;
   const vtop = Math.max(680, qb + 50);       // visual sits under the question
   const vh = { seasons: 480, tray: 490, height: 540, weeks: 340 }[CFG.visual];
+  const hero = 1 - prog(t, 2.6, 3.2);         // product illustration first, then the diagram
+  if (hero > 0 && photo()) cover(photo(), 90, vtop, 900, vh - 30, 28, CFG.heroFocus ?? .5, 1 + .04 * t, hero * q.a);
   x.save(); x.globalAlpha = 1 - prog(t, BODY - .6, BODY);
   ({ seasons: visSeasons, tray: visTray, height: visHeight, weeks: visWeeks })[CFG.visual](t, P, vtop);
   x.restore();
@@ -193,22 +216,21 @@ function drawProduct(t) {
   pill(CFG.tag, 90, 250 + top.dy, P.accent, '#fff', top.a);
   const ti = inOut(t, .2, BODY - .6);
   const ty = text(CFG.title, 90, 350 + ti.dy, 74, 900, P.ink, 900, 88, ti.a);
-  // tape measure: case + extending blade with tick marks
-  const tp = prog(t, 2.2, 4.2), ty2 = Math.max(ty + 70, 700), fade = 1 - prog(t, BODY - .6, BODY);
-  x.globalAlpha = prog(t, 1.8, 2.4) * fade;
-  x.fillStyle = P.accent; rr(90, ty2 - 30, 150, 150, 34); x.fill();
-  x.fillStyle = P.bg; x.beginPath(); x.arc(165, ty2 + 45, 34, 0, 7); x.fill();
-  const bl = 740 * tp;
-  x.fillStyle = '#E8C547'; x.fillRect(236, ty2 + 70, bl, 46);
-  x.fillStyle = P.ink;
-  for (let k = 0; k * 37 < bl; k++) x.fillRect(236 + k * 37, ty2 + 70, 3, k % 4 === 0 ? 30 : 16);
-  x.globalAlpha = 1;
-  const d = inOut(t, 3.6, BODY - .6);
-  text('Listed overall dimensions', 90, ty2 + 160 + d.dy, 34, 700, P.muted, 900, 42, d.a);
-  text(CFG.dims, 90, ty2 + 208 + d.dy, 70, 900, P.ink, 920, 80, d.a);
-  let y = ty2 + 340;
+  // our product photo: big first, then it shrinks to make room for the checklist
+  const fade = 1 - prog(t, BODY - .6, BODY);
+  const ptop = ty + 40, sp = prog(t, 4.8, 5.6);
+  const ph = lerp(1480 - ptop, 440, sp), pa = prog(t, .4, 1.1) * fade;
+  const fy = lerp(CFG.photoFocus ?? .5, CFG.bandFocus ?? CFG.photoFocus ?? .5, sp);
+  cover(photo(), 90, ptop + ti.dy, 900, ph, 30, fy, 1 + .05 * t / BODY, pa);
+  const d = inOut(t, 1.8, BODY - .6);
+  font(40, 700);
+  const chip = 'Listed: ' + CFG.dims, cw = Math.min(860, x.measureText(chip).width + 56);
+  x.globalAlpha = d.a * .92; x.fillStyle = P.dark; rr(110, ptop + ph - 100 + d.dy, cw, 76, 38); x.fill(); x.globalAlpha = 1;
+  font(40, 700); x.globalAlpha = d.a; x.fillStyle = '#fff'; x.textBaseline = 'middle';
+  x.fillText(chip, 138, ptop + ph - 62 + d.dy); x.globalAlpha = 1;
+  let y = ptop + 440 + 44;
   CFG.checks.forEach((line, i) => {
-    const at = 5 + i * 1.4, r = inOut(t, at, BODY - .6);
+    const at = 5.6 + i * 1.4, r = inOut(t, at, BODY - .6);
     x.globalAlpha = r.a; x.strokeStyle = P.accent; x.lineWidth = 6;
     rr(90, y + 4 + r.dy, 48, 48, 10); x.stroke();
     const k = prog(t, at + .4, at + .9);
@@ -219,7 +241,7 @@ function drawProduct(t) {
       x.stroke();
     }
     x.globalAlpha = 1;
-    y = text(line, 165, y + r.dy, 48, 400, P.ink, 820, 60, r.a) + 28;
+    y = text(line, 165, y + r.dy, 44, 400, P.ink, 820, 54, r.a) - r.dy + 20;
   });
   endCard(t);
 }
@@ -252,6 +274,8 @@ function drawMirror(t) {
   }
   const s1 = inOut(t, 3.6, 7.6);
   text('Tape the outline on the wall', 90, 1380 + s1.dy, 52, 700, P.ink, 900, 62, s1.a * fade);
+  // our mirror appears inside the outline once the wall is planned
+  cover(photo(), 380, 680, 320, 400, 6, CFG.photoFocus ?? .3, CFG.photoZoom ?? 1, prog(t, 11.6, 12.4) * fade);
   // switch, outlet, door swing
   const ic = (at, fn) => { const p = prog(t, at, at + .6) * fade; if (p > 0) { x.globalAlpha = p; fn(p); x.globalAlpha = 1; } };
   ic(7.8, () => { x.fillStyle = '#fff'; rr(170, 820, 90, 140, 14); x.fill(); x.fillStyle = '#9A8F80'; rr(200, 850, 30, 80, 8); x.fill(); });
@@ -287,9 +311,8 @@ function drawLavender(t) {
   const h = inOut(t, .2, 3.2);
   text('Lavender seeds are slow.', 90, 520 + h.dy, 80, 900, P.ink, 900, 94, h.a);
   text("Here's what to expect.", 90, 720 + h.dy, 64, 700, P.accent, 900, 78, h.a);
-  x.globalAlpha = h.a;
-  [0, 1, 2].forEach(i => sprig(640 + i * 110, 1300, 1.1, prog(t, .6 + i * .3, 2.4 + i * .3), P.flower[i % 2]));
-  x.globalAlpha = 1;
+  if (photo()) cover(photo(), 90, 860, 900, 560, 28, CFG.heroFocus ?? .5, 1 + .05 * t, h.a);
+  else { x.globalAlpha = h.a; [0, 1, 2].forEach(i => sprig(640 + i * 110, 1300, 1.1, prog(t, .6 + i * .3, 2.4 + i * .3), P.flower[i % 2])); x.globalAlpha = 1; }
   // step 1: depth cross-section
   const a1 = inOut(t, 3.4, 8.2);
   if (a1.a > 0) {
