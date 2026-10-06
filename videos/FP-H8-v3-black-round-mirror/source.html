@@ -1,0 +1,326 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>window.CONFIG = {"id": "FP-H8", "slug": "v3-black-round-mirror", "template": "fit", "bpm": 120, "beats": 32, "image": "08-black-round-wall-mirror.png", "focus": [0.5, 0.42], "bbox": [0.145, 0.145, 0.865, 0.705], "detail": {"fx": 0.33, "fy": 0.3, "zoom": 1.9}, "hook": [{"text": "Will a", "beat": 0, "size": 112}, {"text": "36-inch", "beat": 1, "size": 158, "accent": true}, {"text": "round mirror", "beat": 2, "size": 112}, {"text": "fit your wall?", "beat": 3, "size": 112}], "hookY": 1420, "measure": {"value": 36.02, "decimals": 2, "unit": "in", "caption": "36.02 in, as listed"}, "shape": "circle", "tape": {"label": "≈ 36 in", "caption": "Tape it on your wall first"}, "checks": ["Ask us how it hangs", "Zoom in on the surface"], "product": "Black Round Wall Mirror", "dims": "36.02 × 0.98 × 36.02 in", "domain": "noralanehome.com", "ctaLine": "See it on", "ctaNote": "Link in the description", "palette": {"bg": "#14110F", "ink": "#1E1C1A", "accent": "#8A6A3F", "accent2": "#E8CC9F", "dark": "#151311", "wall": "#EFE8DC", "tape": "#4A8FD1"}, "music": {"style": "home", "seed": 3}, "facts": "社媒文案 FP-H8（大白 10-05 已核）：36.02 x 0.98 x 36.02 in；买前在墙上贴约 36 英寸圆；挂法和墙型问我们；看图确认镜面设计"};</script>
+<script>
+/* Team video engine v3 (10-06 rewrite after Tony's "不要敷衍" note).
+   Rules taken from the reference library (awesome-opus5-5-videos) and platform guides:
+   - our product is on screen from frame 0; the question lands in the first 2 s
+   - 120 BPM grid: every change lands on a beat; one idea per bar (2 s)
+   - object-driven transitions (the photo itself shrinks, floods, zooms); no crossfades
+   - closed-form springs with < 2 % overshoot; masked type reveals
+   - <= 4 words per line, big, inside the centre safe area
+   - last frame = first frame so the Short loops
+   One canvas, one pure draw(t). Templates: "fit" (furniture), "grow" (seeds). */
+const CFG = window.CONFIG;
+const W = 1080, H = 1920;
+const c = document.getElementById('c'), x = c.getContext('2d');
+const FAM = '"Noto Sans CJK SC","Noto Sans CJK JP",sans-serif';
+const BPM = CFG.bpm || 120, BEAT = 60 / BPM, BEATS = CFG.beats || 32;
+const B = n => n * BEAT;
+window.DURATION = B(BEATS);
+window.EVENTS = [];                       // filled by the template: [{t, kind}] for the sound mix
+const ev = (beat, kind) => window.EVENTS.push({ t: +B(beat).toFixed(4), kind });
+
+// ---------- assets ----------
+const IMG = {};
+const want = [CFG.image].filter(Boolean);
+window.READY = want.length === 0;
+let pending = want.length;
+want.forEach(n => { const im = new Image(); im.onload = () => { IMG[n] = im; if (--pending === 0) { window.READY = true; draw(0); } }; im.src = n; });
+const photo = () => IMG[CFG.image];
+
+// ---------- math ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const easeOut = t => 1 - Math.pow(1 - clamp(t), 4);            // ~cubic-bezier(.16,1,.3,1)
+const easeIO = t => { t = clamp(t); return t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2; };
+function spring(t, w = 14, z = .86) {                          // closed-form step response, ~0.4 % overshoot
+  if (t <= 0) return 0;
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+}
+// value that changes target several times = sum of springs (stays a pure function of t)
+function track(t, keys, w, z) {
+  let v = keys[0][1];
+  for (let i = 1; i < keys.length; i++) v += (keys[i][1] - keys[i - 1][1]) * spring(t - B(keys[i][0]), w, z);
+  return v;
+}
+const rectTrack = (t, keys, w, z) => [0, 1, 2, 3, 4].map(k => track(t, keys.map(([b, r]) => [b, r[k]]), w, z));
+const win = (t, b0, b1, d = .35) => clamp(Math.min((t - B(b0)) / d, (B(b1) - t) / d));   // 0..1 inside a beat window
+
+// ---------- drawing helpers ----------
+function font(sz, w) { x.font = `${w || 400} ${sz}px ${FAM}`; }
+function rr(rx, ry, rw, rh, r) {
+  r = Math.max(0, Math.min(r, rw / 2, rh / 2));
+  x.beginPath(); x.moveTo(rx + r, ry); x.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+  x.arcTo(rx + rw, ry + rh, rx, ry + rh, r); x.arcTo(rx, ry + rh, rx, ry, r); x.arcTo(rx, ry, rx + rw, ry, r); x.closePath();
+}
+// Draw the photo into a rounded rect with cover-crop around a focus point (fx, fy in 0..1) and zoom.
+function photoIn(rect, fx, fy, zoom, alpha = 1) {
+  const im = photo(); if (!im || alpha <= 0) return;
+  const [rx, ry, rw, rh, r] = rect;
+  const s = Math.max(rw / im.width, rh / im.height) * zoom, sw = rw / s, sh = rh / s;
+  const sx = clamp(fx * im.width - sw / 2, 0, im.width - sw), sy = clamp(fy * im.height - sh / 2, 0, im.height - sh);
+  x.save(); x.globalAlpha = alpha; rr(rx, ry, rw, rh, r); x.clip();
+  x.drawImage(im, sx, sy, sw, sh, rx, ry, rw, rh); x.restore();
+  return { sx, sy, s };                   // mapping image px -> canvas: cx = rx + (ix - sx) * s
+}
+// Masked type: the line rises out of a mask under its baseline; exits by dropping back in.
+function maskLine(str, tx, ty, sz, weight, col, tIn, tOut, t, align = 'left') {
+  const pin = easeOut((t - tIn) / .38), pout = tOut == null ? 0 : easeIO((t - tOut) / .32);
+  if (pin <= 0 || pout >= 1) return 0;
+  font(sz, weight); x.textBaseline = 'alphabetic'; x.textAlign = align;
+  const w = x.measureText(str).width, lx = align === 'center' ? tx - w / 2 : tx;
+  x.save(); x.beginPath(); x.rect(lx - 20, ty - sz * 1.05, w + 40, sz * 1.35); x.clip();
+  x.fillStyle = col; x.fillText(str, tx, ty + sz * 1.1 * (1 - pin) + sz * 1.1 * pout); x.restore();
+  x.textAlign = 'left';
+  return w;
+}
+function fitFont(str, maxW, start, weight) { let s = start; font(s, weight); while (x.measureText(str).width > maxW && s > 20) { s -= 2; font(s, weight); } return s; }
+function shade(y0, y1, a, rgb) {          // legibility gradient over photos (dark, or cream for light art)
+  rgb = rgb || (CFG.textOn === 'light' ? '246,242,236' : '0,0,0');
+  const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(.45, `rgba(${rgb},${a * .8})`); g.addColorStop(1, `rgba(${rgb},${a})`);
+  x.fillStyle = g; x.fillRect(0, y0, W, y1 - y0);
+}
+function grain(t) {                       // deterministic film grain (very light)
+  const seed = Math.floor(t * 30) * 9301;
+  x.save(); x.globalAlpha = .035;
+  for (let i = 0; i < 900; i++) {
+    const r = Math.sin(seed + i * 78.233) * 43758.5453, gx = (r - Math.floor(r)) * W;
+    const r2 = Math.sin(seed + i * 12.989) * 24634.6345, gy = (r2 - Math.floor(r2)) * H;
+    x.fillStyle = i % 2 ? '#fff' : '#000'; x.fillRect(gx, gy, 2, 2);
+  }
+  x.restore();
+}
+function vignette() {
+  const g = x.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.28)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+}
+function chip(str, cx, cy, bg, fg, sz, a, align = 'center') {
+  if (a <= 0) return;
+  font(sz, 700); const w = x.measureText(str).width + sz * 1.3, h = sz * 1.9;
+  const lx = align === 'center' ? cx - w / 2 : cx;
+  x.save(); x.globalAlpha = a; x.fillStyle = bg; rr(lx, cy - h / 2, w, h, h / 2); x.fill();
+  x.fillStyle = fg; x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillText(str, lx + w / 2, cy + 2); x.restore();
+}
+function countUp(v, dec) { return v.toFixed(dec); }
+
+// ---------- shared hook + CTA + loop ----------
+// Frame 0 and the last frame are identical: full-bleed product, no text.
+const FULL = [0, 0, W, H, 0];
+function hookWords(t, lines) {            // lines: [{text, beat, accent, size}]
+  let y = CFG.hookY || 1180;
+  lines.forEach((l, i) => {
+    const sz = l.size || 118;
+    if (i) y += sz * .86;                 // baseline-to-baseline follows the bigger line
+    const light = CFG.textOn === 'light', P = CFG.palette;
+    const col = l.accent ? (light ? P.accent : P.accent2) : (light ? P.ink : '#FFFFFF');
+    maskLine(l.text, 90, y, sz, 900, col, B(l.beat) + .02, B(CFG.hookOut || 4), t);
+    y += sz * .22;
+  });
+}
+function cta(t, b0, b1) {
+  // a dark panel floods up from the bottom (shape transition), the domain lands on the downbeat
+  const P = CFG.palette;
+  const up = spring(t - B(b0), 11, .9) - spring(t - B(b1 - 1.2), 11, .9);
+  if (up <= .001) return;
+  const top = lerp(H, 1080, up);
+  x.fillStyle = P.dark; rr(0, top, W, H - top + 60, 48 * (1 - up) + 0); x.fill();
+  const tIn = B(b0 + 1), tOut = B(b1 - 1.5);
+  const sz = fitFont(CFG.domain, 900, 120, 900);
+  maskLine(CFG.domain, 540, 1330, sz, 900, '#FFFFFF', tIn, tOut, t, 'center');
+  font(sz, 900); const dw = x.measureText(CFG.domain).width;
+  const ul = easeOut((t - tIn - .25) / .5) * (1 - easeIO((t - tOut) / .3));
+  x.fillStyle = P.accent2; x.fillRect(540 - dw / 2, 1360, dw * ul, 10);
+  maskLine(CFG.ctaLine, 540, 1170, 44, 700, P.accent2, B(b0 + .5), tOut, t, 'center');
+  maskLine(CFG.ctaNote, 540, 1460, 38, 400, 'rgba(255,255,255,.72)', B(b0 + 2), tOut, t, 'center');
+}
+
+// ================= template: FIT (furniture) =================
+function fit(t) {
+  const P = CFG.palette, bb = CFG.bbox;            // product box in image (normalized)
+  // photo states: full-bleed hook -> card (top) -> detail zoom -> full-bleed hero -> full-bleed (CTA under) -> frame 0
+  const CARD = [90, 300, 900, 720, 34];
+  const rect = rectTrack(t, [[0, FULL], [8, CARD], [16, FULL]], 10, .9);
+  const zoom = track(t, [[0, 1.16], [4, 1.0], [8, 1.0], [13, CFG.detail.zoom], [16, 1.08], [28, 1.16]], 7, .92);
+  const fx = track(t, [[0, CFG.focus[0]], [13, CFG.detail.fx], [16, CFG.focus[0]]], 7, .92);
+  const fy = track(t, [[0, CFG.focus[1]], [13, CFG.detail.fy], [16, CFG.focus[1]]], 7, .92);
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  const m = photoIn(rect, fx, fy, zoom);
+  const toC = (ix, iy) => m ? [rect[0] + (ix * photo().width - m.sx) * m.s, rect[1] + (iy * photo().height - m.sy) * m.s] : [0, 0];
+
+  // bar 1: the buyer's question lands word by word (frame 0 shows only the product)
+  const sh = win(t, 0.2, 4.2, .4); if (sh > 0) { x.globalAlpha = sh; shade(950, H, .82); x.globalAlpha = 1; }
+  hookWords(t, CFG.hook);
+
+  // bar 2: a measuring line snaps across the real product; the listed number counts up
+  const mIn = B(4.2), mOut = B(7.6);
+  if (t > mIn && t < mOut + .4 && m) {
+    const [ax, ay] = toC(bb[0], (bb[1] + bb[3]) / 2), [bx] = toC(bb[2], (bb[1] + bb[3]) / 2);
+    const p = easeOut((t - mIn) / .55), out = 1 - easeIO((t - mOut) / .3);
+    x.save(); x.globalAlpha = out; x.strokeStyle = '#FFFFFF'; x.lineWidth = 7; x.lineCap = 'round';
+    x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 12;
+    x.beginPath(); x.moveTo(ax, ay); x.lineTo(lerp(ax, bx, p), ay); x.stroke();
+    [[ax, 1], [lerp(ax, bx, p), p]].forEach(([ex, k]) => { x.beginPath(); x.moveTo(ex, ay - 34 * k); x.lineTo(ex, ay + 34 * k); x.stroke(); });
+    x.restore();
+    const n = CFG.measure.value * easeOut((t - mIn - .1) / (B(2) - .1));
+    chip(countUp(n, CFG.measure.decimals) + ' ' + CFG.measure.unit, (ax + bx) / 2, ay - 90, '#FFFFFF', P.ink, 64, out * clamp((t - mIn) / .25));
+    if (out > 0) { x.globalAlpha = out * clamp((t - mIn) / .3); shade(1300, H, .55); x.globalAlpha = 1; maskLine(CFG.measure.caption, 540, 1500, 52, 700, '#FFFFFF', mIn + B(1.5), mOut, t, 'center'); }
+  }
+
+  // bar 3: the outline lifts off the product and lands on a plain wall as tape
+  if (t > B(8) && t < B(16.5)) {
+    const P2 = easeOut((t - B(8.6)) / .5), lift = spring(t - B(9.4), 9, .9), fade = 1 - easeIO((t - B(12)) / .35);
+    const [ax, ay] = toC(bb[0], bb[1]), [bx, by] = toC(bb[2], bb[3]);
+    const wall = [90, 1060, 900, 470];
+    x.globalAlpha = clamp((t - B(8.4)) / .3) * fade; x.fillStyle = P.wall; rr(...wall, 30); x.fill(); x.globalAlpha = 1;
+    const cx = lerp((ax + bx) / 2, 540, lift), cy = lerp((ay + by) / 2, 1295, lift);
+    const rw = lerp((bx - ax) / 2, 170, lift), rh = lerp((by - ay) / 2, 170, lift);
+    x.save(); x.globalAlpha = fade; x.setLineDash([30, 16]); x.lineDashOffset = -t * 40; x.lineWidth = 10; x.strokeStyle = P.tape;
+    x.beginPath();
+    if (CFG.shape === 'circle') x.ellipse(cx, cy, rw, rh, 0, 0, Math.PI * 2 * P2);
+    else { x.rect(cx - rw, cy - rh, rw * 2, rh * 2); }
+    x.stroke(); x.restore();
+    chip(CFG.tape.label, 540, 1295, P.ink, '#FFFFFF', 40, clamp((t - B(10)) / .25) * fade);
+    maskLine(CFG.tape.caption, 540, 1640, 60, 900, '#FFFFFF', B(10.5), B(12), t, 'center');
+  }
+
+  // bar 4: two checks; the second one pushes the camera into the product detail
+  if (t > B(12) && t < B(16.5)) {
+    CFG.checks.forEach((c, i) => {
+      const tb = B(12.3 + i * 2), y = 1210 + i * 190, out = B(16);
+      const pop = spring(t - tb, 16, .7) * (1 - easeIO((t - out) / .3));
+      if (pop <= 0) return;
+      x.save(); x.translate(150, y - 22); x.scale(pop, pop);
+      x.fillStyle = P.accent; x.beginPath(); x.arc(0, 0, 42, 0, 7); x.fill();
+      x.strokeStyle = '#fff'; x.lineWidth = 9; x.lineCap = 'round'; x.lineJoin = 'round';
+      const k = easeOut((t - tb - .15) / .3);
+      x.beginPath(); x.moveTo(-17, 0); x.lineTo(-17 + 11 * Math.min(1, k * 2), 12 * Math.min(1, k * 2));
+      if (k > .5) x.lineTo(-6 + 26 * (k - .5) * 2, 12 - 32 * (k - .5) * 2); x.stroke(); x.restore();
+      maskLine(c, 230, y, 62, 900, '#FFFFFF', tb + .08, out, t);
+    });
+  }
+
+  // bar 5: hero — the photo floods back; product name + listed dimensions
+  const hs = win(t, 16.6, 20.2, .4); if (hs > 0) { x.globalAlpha = hs; shade(900, H, .7); x.globalAlpha = 1; }
+  const nsz = fitFont(CFG.product, 900, 92, 900);
+  maskLine(CFG.product, 90, 1430, nsz, 900, '#FFFFFF', B(16.8), B(20), t);
+  chip('Listed: ' + CFG.dims, 90, 1530, 'rgba(255,255,255,.92)', P.ink, 40, win(t, 17.6, 20, .3), 'left');
+
+  // bars 6–7: CTA panel floods up, then contracts back to frame 0
+  cta(t, 20, 30.5);
+  ev(0, 'start');
+  CFG.hook.forEach(h => ev(h.beat, 'tick'));
+  ev(4.2, 'swish'); ev(6, 'click'); ev(8, 'whoosh'); ev(9.4, 'whoosh'); ev(10, 'tick');
+  ev(12.3, 'pop'); ev(14.3, 'pop'); ev(13, 'whoosh'); ev(16, 'impact'); ev(20, 'whoosh'); ev(21, 'impact'); ev(29.3, 'whoosh');
+}
+
+// ================= template: GROW (seeds) =================
+function grow(t) {
+  const P = CFG.palette;
+  const CARD = [90, 270, 900, 560, 34];
+  const rect = rectTrack(t, [[0, FULL], [4, CARD], [16, FULL]], 10, .9);
+  const zoom = track(t, [[0, 1.14], [4, 1.0], [16, 1.06], [28, 1.14]], 7, .92);
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  photoIn(rect, CFG.focus[0], CFG.focus[1], zoom);
+  const sh = win(t, 0.2, 4.2, .4); if (sh > 0) { x.globalAlpha = sh; shade(860, H, .96); x.globalAlpha = 1; }
+  hookWords(t, CFG.hook);
+
+  const panelTop = track(t, [[0, H + 40], [4.2, 880], [15.6, H + 40]], 10, .9);
+  if (panelTop < H) { x.fillStyle = P.panel; rr(60, panelTop, 960, H - panelTop + 80, 40); x.fill(); }
+  const py = panelTop;
+  const steps = CFG.steps;
+  // step A (bar 2): seed drops to depth; cover sprinkles on
+  const sA = [B(4.5), B(8)];
+  if (t > sA[0] && t < sA[1] + .5) {
+    const out = 1 - easeIO((t - sA[1]) / .35);
+    x.save(); x.globalAlpha = out;
+    const soilTop = py + 340;                       // macro cross-section (not to scale)
+    const sg = x.createLinearGradient(0, soilTop, 0, soilTop + 250); sg.addColorStop(0, '#8A6A50'); sg.addColorStop(1, '#5E4433');
+    x.fillStyle = sg; rr(100, soilTop, 880, 250, 30); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 70; i++) { x.beginPath(); x.arc(130 + (i * 263) % 820, soilTop + 30 + (i * 71) % 200, 4 + i % 4, 0, 7); x.fill(); }
+    for (let i = 0; i < 60; i++) { const k = spring(t - B(6.6) - i * .01, 18, .7); if (k > 0) { x.fillStyle = '#F4F1EA'; x.beginPath(); x.arc(130 + (i * 197) % 820, soilTop + 12 + ((i * 37) % 22) - 60 * (1 - k), 9, 0, 7); x.fill(); } }
+    const drop = spring(t - B(5), 13, .8), sy = lerp(soilTop - 300, soilTop + 62, drop);
+    x.fillStyle = '#2B1D14'; x.beginPath(); x.ellipse(540, sy, 30, 19, .25, 0, 7); x.fill();
+    const lk = easeOut((t - B(5.6)) / .4);
+    x.strokeStyle = '#FFFFFF'; x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.moveTo(680, soilTop); x.lineTo(680, soilTop + 62 * lk); x.stroke();
+    x.beginPath(); x.moveTo(658, soilTop); x.lineTo(702, soilTop); x.moveTo(658, soilTop + 62 * lk); x.lineTo(702, soilTop + 62 * lk); x.stroke();
+    chip('1/8 in', 790, soilTop + 31, '#FFFFFF', P.ink, 40, lk);
+    x.restore();
+    maskLine(steps.depth, 540, py + 170, 76, 900, P.ink, B(5.6), sA[1], t, 'center');
+    maskLine(steps.cover, 540, py + 250, 46, 400, P.ink2, B(6.6), sA[1], t, 'center');
+  }
+  // step B (bar 3): warmth + the 14–21 day window; sprouts arrive unevenly
+  const sB = [B(8), B(12)];
+  if (t > sB[0] && t < sB[1] + .5) {
+    const out = 1 - easeIO((t - sB[1]) / .35);
+    x.save(); x.globalAlpha = out;
+    const ty = py + 540, x0 = 150, x1 = 930, dayX = d => lerp(x0, x1, d / 21);
+    const draw = easeOut((t - B(8.3)) / .9);
+    x.strokeStyle = P.track; x.lineWidth = 22; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, ty); x.lineTo(lerp(x0, x1, draw), ty); x.stroke();
+    const hl = easeOut((t - B(9.5)) / .5);
+    x.strokeStyle = P.accent; x.beginPath(); x.moveTo(dayX(14), ty); x.lineTo(lerp(dayX(14), dayX(21), hl), ty); x.stroke();
+    [[0, 'Day 0'], [14, 'Day 14'], [21, 'Day 21']].forEach(([d, l], i) => {
+      const a = clamp((t - B(8.4 + i * .5)) / .25);
+      x.globalAlpha = a * out; font(40, 700); x.fillStyle = P.ink; x.textAlign = 'center'; x.textBaseline = 'top'; x.fillText(l, dayX(d), ty + 34); x.globalAlpha = out;
+    });
+    x.textAlign = 'left';
+    [15.2, 17.6, 14.4, 19.8, 16.5, 20.6].forEach((d, i) => {     // illustrative: sprouts do not arrive together
+      const g = spring(t - B(10 + i * .33), 12, .75); if (g <= 0) return;
+      const sx = dayX(d), sy = ty - 18;
+      x.strokeStyle = '#5F8F4E'; x.lineWidth = 10; x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx, sy - 120 * g); x.stroke();
+      x.fillStyle = '#6FA35A';
+      x.beginPath(); x.ellipse(sx - 22 * g, sy - 126 * g, 28 * g, 12 * g, .7, 0, 7); x.fill();
+      x.beginPath(); x.ellipse(sx + 22 * g, sy - 126 * g, 28 * g, 12 * g, -.7, 0, 7); x.fill();
+    });
+    x.restore();
+    maskLine(steps.window, 540, py + 170, 76, 900, P.ink, B(8.4), sB[1], t, 'center');
+    maskLine(steps.temp, 540, py + 250, 46, 400, P.ink2, B(9), sB[1], t, 'center');
+  }
+  // step C (bar 4): sun + drainage, then the packet note
+  const sC = [B(12), B(15.6)];
+  if (t > sC[0] && t < sC[1] + .5) {
+    const out = 1 - easeIO((t - sC[1]) / .35);
+    x.save(); x.globalAlpha = out;
+    const cy = py + 470, sun = spring(t - B(12.2), 10, .85);
+    x.fillStyle = '#E9B53C'; x.beginPath(); x.arc(300, cy + 60 - 120 * sun, 86, 0, 7); x.fill();
+    x.strokeStyle = '#E9B53C'; x.lineWidth = 10; x.lineCap = 'round';
+    for (let k = 0; k < 10; k++) { const an = k * Math.PI / 5 + t * .25, r0 = 95, r1 = 95 + 34 * sun; x.beginPath(); x.moveTo(300 + Math.cos(an) * r0, cy + 60 - 120 * sun + Math.sin(an) * r0); x.lineTo(300 + Math.cos(an) * r1, cy + 60 - 120 * sun + Math.sin(an) * r1); x.stroke(); }
+    const pot = clamp((t - B(13)) / .3);
+    x.globalAlpha = out * pot; x.fillStyle = P.soil; rr(580, cy - 150, 360, 260, 26); x.fill();
+    x.fillStyle = '#7FB7DA';
+    for (let k = 0; k < 8; k++) { const ph = ((t - B(13.2)) * 1.4 + k / 8) % 1; if (t > B(13.2)) { x.beginPath(); x.arc(610 + k * 42, cy - 140 + ph * 250, 12, 0, 7); x.fill(); } }
+    x.restore();
+    maskLine(steps.sun, 540, py + 170, 76, 900, P.ink, B(12.3), sC[1], t, 'center');
+    maskLine(steps.drain, 540, py + 250, 46, 400, P.ink2, B(13.2), sC[1], t, 'center');
+    maskLine(steps.packet, 540, 1466, 40, 700, P.accent, B(14.4), sC[1], t, 'center');
+  }
+  // sources stay visible while facts are on screen
+  const sa = win(t, 4.6, 15.6, .3);
+  if (sa > 0) { font(28, 400); x.globalAlpha = sa; x.fillStyle = P.ink2; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillText(CFG.source, 540, Math.max(py + 650, 1528)); x.globalAlpha = 1; x.textAlign = 'left'; }
+
+  // bar 5: hero — the illustration floods back with the product name
+  const hs = win(t, 16.6, 20.2, .4); if (hs > 0) { x.globalAlpha = hs; shade(980, H, .96); x.globalAlpha = 1; }
+  const nsz = fitFont(CFG.product, 900, 86, 900);
+  maskLine(CFG.payoff, 90, 1340, 80, 900, P.accent, B(16.6), B(20), t);
+  maskLine(CFG.product, 90, 1440, nsz, 700, P.ink, B(17), B(20), t);
+  cta(t, 20, 30.5);
+  ev(0, 'start'); CFG.hook.forEach(h => ev(h.beat, 'tick'));
+  ev(4, 'whoosh'); ev(5, 'drop'); ev(6.6, 'sprinkle'); ev(8.3, 'swish'); ev(9.5, 'click');
+  [0, 1, 2, 3, 4, 5].forEach(i => ev(10 + i * .33, 'pop'));
+  ev(12.2, 'swish'); ev(13.2, 'drip'); ev(14.4, 'tick'); ev(16, 'impact'); ev(20, 'whoosh'); ev(21, 'impact'); ev(29.3, 'whoosh');
+}
+
+window.draw = function (t) {
+  window.EVENTS = [];
+  x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.setLineDash([]); x.shadowBlur = 0;
+  ({ fit, grow })[CFG.template](t);
+  vignette(); grain(t);
+};
+draw(0);
+</script>
+</body></html>

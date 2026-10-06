@@ -1,0 +1,151 @@
+[
+ {
+  "id": "FP-H8",
+  "slug": "v3-black-round-mirror",
+  "template": "fit",
+  "bpm": 120,
+  "beats": 32,
+  "image": "08-black-round-wall-mirror.png",
+  "focus": [
+   0.5,
+   0.42
+  ],
+  "bbox": [
+   0.145,
+   0.145,
+   0.865,
+   0.705
+  ],
+  "detail": {
+   "fx": 0.33,
+   "fy": 0.3,
+   "zoom": 1.9
+  },
+  "hook": [
+   {
+    "text": "Will a",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "36-inch",
+    "beat": 1,
+    "size": 158,
+    "accent": true
+   },
+   {
+    "text": "round mirror",
+    "beat": 2,
+    "size": 112
+   },
+   {
+    "text": "fit your wall?",
+    "beat": 3,
+    "size": 112
+   }
+  ],
+  "hookY": 1420,
+  "measure": {
+   "value": 36.02,
+   "decimals": 2,
+   "unit": "in",
+   "caption": "36.02 in, as listed"
+  },
+  "shape": "circle",
+  "tape": {
+   "label": "≈ 36 in",
+   "caption": "Tape it on your wall first"
+  },
+  "checks": [
+   "Ask us how it hangs",
+   "Zoom in on the surface"
+  ],
+  "product": "Black Round Wall Mirror",
+  "dims": "36.02 × 0.98 × 36.02 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "ctaNote": "Link in the description",
+  "palette": {
+   "bg": "#14110F",
+   "ink": "#1E1C1A",
+   "accent": "#8A6A3F",
+   "accent2": "#E8CC9F",
+   "dark": "#151311",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "music": {
+   "style": "home",
+   "seed": 3
+  },
+  "facts": "社媒文案 FP-H8（大白 10-05 已核）：36.02 x 0.98 x 36.02 in；买前在墙上贴约 36 英寸圆；挂法和墙型问我们；看图确认镜面设计"
+ },
+ {
+  "id": "V-S01",
+  "slug": "v3-lavender-slow",
+  "template": "grow",
+  "bpm": 120,
+  "beats": 32,
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "focus": [
+   0.52,
+   0.42
+  ],
+  "hook": [
+   {
+    "text": "Lavender seeds",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "are slow",
+    "beat": 1,
+    "size": 168,
+    "accent": true
+   },
+   {
+    "text": "Here's what",
+    "beat": 2,
+    "size": 96
+   },
+   {
+    "text": "to expect",
+    "beat": 3,
+    "size": 96
+   }
+  ],
+  "hookY": 1320,
+  "steps": {
+   "depth": "1/8 inch deep",
+   "cover": "Cover lightly with perlite",
+   "window": "14–21 days",
+   "temp": "Germination usually begins · about 70°F",
+   "sun": "Full sun",
+   "drain": "Excellent drainage",
+   "packet": "Follow the packet's pre-treatment directions"
+  },
+  "source": "Sources: Utah State University · NC State Extension",
+  "payoff": "Grow it from seed",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "ctaNote": "Link in the description",
+  "palette": {
+   "bg": "#F6F2EC",
+   "panel": "#FBF8F3",
+   "ink": "#2E2440",
+   "ink2": "#5E5670",
+   "accent": "#7A5BA6",
+   "accent2": "#D9C8F2",
+   "dark": "#2B2140",
+   "soil": "#7A5A43",
+   "track": "#E4DCEC"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 2
+  },
+  "facts": "社媒文案 V-S01（大白 10-06 13:29 已核）：一般英国薰衣草 1/8 英寸深、轻覆珍珠岩；约 70°F 时通常 14–21 天开始发芽；按包装说明做预处理；全日照、排水极好",
+  "textOn": "light"
+ }
+]
