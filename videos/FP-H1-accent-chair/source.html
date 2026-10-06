@@ -1,0 +1,345 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<!-- CONFIG is injected by tools/build.py; edit the JSON, not the drawing code. -->
+<script>window.CONFIG = /*CONFIG*/{"id": "FP-H1", "slug": "accent-chair", "kind": "product", "tag": "BEFORE YOU ORDER", "domain": "noralanehome.com", "title": "Natural Wood Tufted Accent Chair: 3 things to check", "dims": "23.2 × 24 × 26.3 in", "checks": ["Measure the seating spot and the delivery route.", "Confirm which figure is width, depth and height, plus seat height.", "Assembly isn't stated on the listing — ask us."], "product": "Natural Wood Tufted Accent Chair", "endKicker": "See the listing", "endNote": "Link in the description", "url": "https://noralanehome.com/product/natural-wood-tufted-accent-chair-b346p320760/", "palette": {"bg": "#F7F3EE", "ink": "#2A2622", "accent": "#B5562F", "accentLight": "#F0C9A8", "dark": "#2A2622", "soft": "#E9E1D6", "muted": "#7A7066", "flower": ["#B5562F"]}}/*END*/;</script>
+<script>
+// Team video engine: one canvas, one pure draw(t). Same t -> same frame.
+// Scene kinds: qa (seed Q&A card), product (furniture "before you order" card),
+// mirror (V-F01 wall planning), lavender (V-S01 sowing explainer).
+const CFG = window.CONFIG;
+const W = 1080, H = 1920;
+const c = document.getElementById('c');
+const x = c.getContext('2d');
+const FAM = '"Noto Sans CJK SC","Noto Sans CJK JP",sans-serif';
+const END = CFG.endHold || 8;          // end card holds the URL for 8 s
+const BODY = CFG.body || 12;           // seconds before the end card
+window.DURATION = BODY + END;
+window.READY = true;
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ease = t => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const prog = (t, a, b) => ease(clamp((t - a) / (b - a)));
+const lerp = (a, b, p) => a + (b - a) * p;
+
+function font(sz, w) { x.font = `${w || 400} ${sz}px ${FAM}`; }
+function wrap(text, maxW) {
+  const words = text.split(' '); const lines = []; let cur = '';
+  for (const w of words) {
+    const t = cur ? cur + ' ' + w : w;
+    if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+// Draw wrapped text; returns bottom y.
+function text(str, tx, ty, sz, w, col, maxW, lh, alpha = 1, align = 'left') {
+  font(sz, w); x.fillStyle = col; x.globalAlpha = alpha; x.textAlign = align; x.textBaseline = 'top';
+  const lines = wrap(str, maxW || 900);
+  lines.forEach((l, i) => x.fillText(l, tx, ty + i * (lh || sz * 1.25)));
+  x.globalAlpha = 1; x.textAlign = 'left';
+  return ty + lines.length * (lh || sz * 1.25);
+}
+function rr(rx, ry, rw, rh, r) {
+  x.beginPath(); x.moveTo(rx + r, ry); x.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+  x.arcTo(rx + rw, ry + rh, rx, ry + rh, r); x.arcTo(rx, ry + rh, rx, ry, r); x.arcTo(rx, ry, rx + rw, ry, r); x.closePath();
+}
+function pill(label, px, py, bg, fg, alpha) {
+  font(30, 700); const w = x.measureText(label).width + 52;
+  x.globalAlpha = alpha; x.fillStyle = bg; rr(px, py, w, 58, 29); x.fill();
+  x.fillStyle = fg; x.textBaseline = 'middle'; x.fillText(label, px + 26, py + 30); x.globalAlpha = 1;
+  return w;
+}
+// Fade + rise for an element that appears at a and (optionally) leaves at b.
+function inOut(t, a, b) {
+  const pi = prog(t, a, a + .7); const po = b ? 1 - prog(t, b, b + .6) : 1;
+  return { a: pi * po, dy: (1 - pi) * 34 };
+}
+
+// ---------- shared pieces ----------
+function bg(col, acc) {
+  x.fillStyle = col; x.fillRect(0, 0, W, H);
+  x.globalAlpha = .07; x.fillStyle = acc;
+  x.beginPath(); x.arc(940, 260, 300, 0, Math.PI * 2); x.fill();
+  x.beginPath(); x.arc(80, 1720, 260, 0, Math.PI * 2); x.fill();
+  x.globalAlpha = 1;
+}
+function endCard(t) {
+  const p = prog(t, BODY - .6, BODY + .3);
+  if (p <= 0) return;
+  const P = CFG.palette;
+  x.globalAlpha = p; x.fillStyle = P.dark; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+  const r = inOut(t, BODY, 0);
+  text(CFG.endKicker, 90, 560 + r.dy, 40, 700, P.accentLight, 900, 52, r.a);
+  text(CFG.product, 90, 640 + r.dy, 62, 900, '#FFFFFF', 900, 78, r.a);
+  const u = inOut(t, BODY + .5, 0);
+  let us = 112; font(us, 900); while (x.measureText(CFG.domain).width > 900) { us -= 4; font(us, 900); }
+  x.globalAlpha = u.a; x.fillStyle = '#FFFFFF'; x.textBaseline = 'top';
+  x.fillText(CFG.domain, 90, 1040 + u.dy);
+  const uw = x.measureText(CFG.domain).width;
+  x.fillStyle = P.accentLight; x.fillRect(90, 1040 + us * 1.18 + u.dy, uw * prog(t, BODY + .8, BODY + 1.6), 10);
+  x.globalAlpha = 1;
+  text(CFG.endNote, 90, 1240 + u.dy, 38, 400, 'rgba(255,255,255,.75)', 900, 50, u.a);
+}
+
+// ---------- seed Q&A visuals ----------
+function visSeasons(t, P, top) {           // cool spring + fall highlighted
+  const segs = ['Winter', 'Spring', 'Summer', 'Fall'], cool = [false, true, false, true];
+  const sw = 210, gap = 14, x0 = 90;
+  segs.forEach((s, i) => {
+    const p = prog(t, 3 + i * .25, 3.8 + i * .25);
+    const hl = cool[i] ? prog(t, 4.6, 5.4) : 0;
+    x.globalAlpha = p; x.fillStyle = cool[i] ? lerpCol(P.soft, P.accent, hl) : P.soft;
+    rr(x0 + i * (sw + gap), top + 60, sw, 280, 26); x.fill();
+    text(s, x0 + i * (sw + gap) + sw / 2, top + 176, 40, 700, cool[i] && hl > .5 ? '#fff' : P.ink, 200, 48, p, 'center');
+  });
+  const lp = prog(t, 5.4, 6.2);
+  text('cool = good sowing window', 90, top + 380, 40, 700, P.accent, 900, 44, lp);
+}
+function visTray(t, P, top) {              // slow, uneven emergence
+  const cols = 4, rows = 2, cw = 205, ch = 170, x0 = 100;
+  const times = [4.2, 7.6, 5.4, 9.0, 6.5, 4.9, 8.3, 10.1]; // staggered on purpose
+  for (let i = 0; i < 8; i++) {
+    const cx = x0 + (i % cols) * (cw + 12), cy = top + 40 + Math.floor(i / cols) * (ch + 12);
+    x.fillStyle = P.soft; rr(cx, cy, cw, ch, 18); x.fill();
+    x.fillStyle = '#6B4F3A'; rr(cx + 14, cy + ch - 46, cw - 28, 32, 10); x.fill();
+    const g = prog(t, times[i], times[i] + 1.2);
+    if (g > 0) {
+      const sx = cx + cw / 2, sy = cy + ch - 46;
+      x.strokeStyle = P.accent; x.lineWidth = 8; x.lineCap = 'round';
+      x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx, sy - 60 * g); x.stroke();
+      x.fillStyle = P.accent;
+      x.beginPath(); x.ellipse(sx - 15 * g, sy - 66 * g, 20 * g, 9 * g, .7, 0, 7); x.fill();
+      x.beginPath(); x.ellipse(sx + 15 * g, sy - 66 * g, 20 * g, 9 * g, -.7, 0, 7); x.fill();
+    }
+  }
+  text('slow · not all at once', 90, top + 410, 40, 700, P.accent, 900, 44, prog(t, 5, 5.8));
+}
+function visHeight(t, P, top) {            // ruler to 8 ft, 6–8 ft band
+  const base = top + 470, ft = 56, rx = 320;
+  const p = prog(t, 3, 4);
+  x.globalAlpha = p; x.fillStyle = P.ink;
+  for (let f = 0; f <= 8; f++) {
+    x.fillRect(rx, base - f * ft, f % 2 ? 26 : 44, 4);
+    if (f % 2 === 0) text(f + ' ft', rx - 30, base - f * ft - 18, 30, 700, P.ink, 200, 36, p, 'right');
+  }
+  x.fillRect(rx, base - 8 * ft, 4, 8 * ft); x.globalAlpha = 1;
+  const band = prog(t, 5.6, 6.4);
+  x.globalAlpha = .25 * band; x.fillStyle = P.accent; x.fillRect(rx + 60, base - 8 * ft, 600, 2 * ft); x.globalAlpha = 1;
+  const g = prog(t, 3.6, 6.2), hgt = 7.2 * ft * g, sx = 520;
+  x.strokeStyle = '#4E7A4A'; x.lineWidth = 12; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(sx, base); x.lineTo(sx, base - hgt); x.stroke();
+  for (let k = 0; k < 7; k++) {            // blooms open up the stalk
+    const fy = base - hgt + k * 34; if (fy > base - 40) continue;
+    const bp = prog(t, 4.6 + k * .2, 5.2 + k * .2);
+    x.fillStyle = P.flower[k % P.flower.length];
+    x.beginPath(); x.arc(sx + (k % 2 ? 22 : -22), fy, 20 * bp, 0, 7); x.fill();
+  }
+  text('many reach 6–8 ft', rx + 300, base - 8 * ft + 34, 40, 700, P.accent, 400, 48, band);
+}
+function visWeeks(t, P, top) {             // sow indoors -> 8–10 weeks -> last frost
+  const y = top + 190, x0 = 120, x1 = 960;
+  const p = prog(t, 3, 4.6);
+  x.strokeStyle = P.soft; x.lineWidth = 14; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(x0, y); x.lineTo(x1, y); x.stroke();
+  x.strokeStyle = P.accent; x.beginPath(); x.moveTo(x0, y); x.lineTo(lerp(x0, x1, p), y); x.stroke();
+  for (let wk = 0; wk <= 10; wk++) {
+    const wx = lerp(x0, x1, wk / 10);
+    x.fillStyle = wx <= lerp(x0, x1, p) ? P.accent : P.soft;
+    x.beginPath(); x.arc(wx, y, wk === 0 || wk === 10 ? 20 : 9, 0, 7); x.fill();
+  }
+  const a = prog(t, 3.2, 3.9), b = prog(t, 4.6, 5.3);
+  text('sow indoors', x0 - 30, y - 110, 36, 700, P.ink, 300, 44, a);
+  text('last frost', x1 + 30, y - 110, 36, 700, P.ink, 300, 44, b, 'right');
+  text('8–10 weeks', 540, y + 50, 52, 900, P.accent, 600, 60, prog(t, 5, 5.8), 'center');
+}
+function lerpCol(a, b, p) {
+  const h = s => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16));
+  const A = h(a), B = h(b);
+  return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], p))).join(',')})`;
+}
+
+function drawQA(t) {
+  const P = CFG.palette; bg(P.bg, P.accent);
+  const top = inOut(t, 0, BODY - .6);
+  pill(CFG.tag, 90, 250 + top.dy, P.accent, '#fff', top.a);
+  font(30, 700); x.globalAlpha = top.a; x.fillStyle = P.ink; x.textAlign = 'right'; x.textBaseline = 'middle';
+  x.fillText(CFG.domain, 990, 280 + top.dy); x.textAlign = 'left'; x.globalAlpha = 1;
+  const q = inOut(t, .2, BODY - .6);
+  text('Q.', 90, 370 + q.dy, 54, 900, P.accent, 200, 60, q.a);
+  const qs = CFG.question.length > 38 ? 70 : 78;
+  const qb = text(CFG.question, 90, 440 + q.dy, qs, 900, P.ink, 900, qs * 1.18, q.a) - q.dy;
+  const vtop = Math.max(680, qb + 50);       // visual sits under the question
+  const vh = { seasons: 480, tray: 490, height: 540, weeks: 340 }[CFG.visual];
+  x.save(); x.globalAlpha = 1 - prog(t, BODY - .6, BODY);
+  ({ seasons: visSeasons, tray: visTray, height: visHeight, weeks: visWeeks })[CFG.visual](t, P, vtop);
+  x.restore();
+  let y = vtop + vh;
+  CFG.answer.forEach((line, i) => {
+    const r = inOut(t, 4.6 + i * 1.3, BODY - .6);
+    y = text(line, 90, y + r.dy, 50, i === 0 ? 700 : 400, P.ink, 900, 62, r.a) - r.dy + 10;
+  });
+  const s = inOut(t, CFG.sourceAt || 9, BODY - .6);
+  text(CFG.source, 90, Math.min(1496, y + 22) + s.dy, 30, 400, P.muted, 900, 38, s.a);
+  endCard(t);
+}
+
+// ---------- furniture product card ----------
+function drawProduct(t) {
+  const P = CFG.palette; bg(P.bg, P.accent);
+  const top = inOut(t, 0, BODY - .6);
+  pill(CFG.tag, 90, 250 + top.dy, P.accent, '#fff', top.a);
+  const ti = inOut(t, .2, BODY - .6);
+  const ty = text(CFG.title, 90, 350 + ti.dy, 74, 900, P.ink, 900, 88, ti.a);
+  // tape measure: case + extending blade with tick marks
+  const tp = prog(t, 2.2, 4.2), ty2 = Math.max(ty + 70, 700), fade = 1 - prog(t, BODY - .6, BODY);
+  x.globalAlpha = prog(t, 1.8, 2.4) * fade;
+  x.fillStyle = P.accent; rr(90, ty2 - 30, 150, 150, 34); x.fill();
+  x.fillStyle = P.bg; x.beginPath(); x.arc(165, ty2 + 45, 34, 0, 7); x.fill();
+  const bl = 740 * tp;
+  x.fillStyle = '#E8C547'; x.fillRect(236, ty2 + 70, bl, 46);
+  x.fillStyle = P.ink;
+  for (let k = 0; k * 37 < bl; k++) x.fillRect(236 + k * 37, ty2 + 70, 3, k % 4 === 0 ? 30 : 16);
+  x.globalAlpha = 1;
+  const d = inOut(t, 3.6, BODY - .6);
+  text('Listed overall dimensions', 90, ty2 + 160 + d.dy, 34, 700, P.muted, 900, 42, d.a);
+  text(CFG.dims, 90, ty2 + 208 + d.dy, 70, 900, P.ink, 920, 80, d.a);
+  let y = ty2 + 340;
+  CFG.checks.forEach((line, i) => {
+    const at = 5 + i * 1.4, r = inOut(t, at, BODY - .6);
+    x.globalAlpha = r.a; x.strokeStyle = P.accent; x.lineWidth = 6;
+    rr(90, y + 4 + r.dy, 48, 48, 10); x.stroke();
+    const k = prog(t, at + .4, at + .9);
+    if (k > 0) {
+      x.beginPath(); x.moveTo(101, y + 30 + r.dy);
+      x.lineTo(lerp(101, 112, Math.min(1, k * 2)), lerp(y + 30, y + 42, Math.min(1, k * 2)) + r.dy);
+      if (k > .5) x.lineTo(lerp(112, 130, (k - .5) * 2), lerp(y + 42, y + 16, (k - .5) * 2) + r.dy);
+      x.stroke();
+    }
+    x.globalAlpha = 1;
+    y = text(line, 165, y + r.dy, 48, 400, P.ink, 820, 60, r.a) + 28;
+  });
+  endCard(t);
+}
+
+// ---------- V-F01: plan the wall before hanging a mirror ----------
+function drawMirror(t) {
+  const P = CFG.palette; bg(P.bg, P.accent);
+  const fade = 1 - prog(t, BODY - .6, BODY);
+  const h1 = inOut(t, .1, 3);
+  text('Hanging a mirror?', 90, 520 + h1.dy, 88, 900, P.ink, 900, 100, h1.a);
+  text('Measure first.', 90, 630 + h1.dy, 88, 900, P.accent, 900, 100, h1.a);
+  // wall panel
+  const wa = prog(t, 3.3, 3.9) * fade;
+  x.globalAlpha = wa; x.fillStyle = '#EDE6DA'; rr(90, 560, 900, 760, 24); x.fill();
+  x.fillStyle = '#CFC4B2'; x.fillRect(90, 1290, 900, 30); x.globalAlpha = 1;
+  // tape outline drawn progressively (dashed)
+  const op = prog(t, 3.6, 6.4);
+  if (op > 0) {
+    x.save(); x.globalAlpha = fade; x.setLineDash([26, 14]); x.lineWidth = 12; x.strokeStyle = '#3B7DB8';
+    const rx0 = 380, ry0 = 680, rw = 320, rh = 400, per = 2 * (rw + rh), L = per * op;
+    x.beginPath(); x.moveTo(rx0, ry0);
+    const pts = [[rx0 + rw, ry0], [rx0 + rw, ry0 + rh], [rx0, ry0 + rh], [rx0, ry0]];
+    let left = L, px = rx0, py = ry0;
+    for (const [qx, qy] of pts) {
+      const seg = Math.hypot(qx - px, qy - py);
+      if (left >= seg) { x.lineTo(qx, qy); left -= seg; px = qx; py = qy; }
+      else { const f = left / seg; x.lineTo(px + (qx - px) * f, py + (qy - py) * f); break; }
+    }
+    x.stroke(); x.restore();
+  }
+  const s1 = inOut(t, 3.6, 7.6);
+  text('Tape the outline on the wall', 90, 1380 + s1.dy, 52, 700, P.ink, 900, 62, s1.a * fade);
+  // switch, outlet, door swing
+  const ic = (at, fn) => { const p = prog(t, at, at + .6) * fade; if (p > 0) { x.globalAlpha = p; fn(p); x.globalAlpha = 1; } };
+  ic(7.8, () => { x.fillStyle = '#fff'; rr(170, 820, 90, 140, 14); x.fill(); x.fillStyle = '#9A8F80'; rr(200, 850, 30, 80, 8); x.fill(); });
+  ic(8.6, () => { x.fillStyle = '#fff'; rr(800, 1170, 110, 90, 14); x.fill(); x.fillStyle = '#6E655A'; x.fillRect(830, 1195, 10, 26); x.fillRect(862, 1195, 10, 26); });
+  ic(9.4, () => { x.strokeStyle = '#B5562F'; x.lineWidth = 8; x.setLineDash([16, 12]);
+    x.beginPath(); x.moveTo(990, 1290); x.arc(990, 1290, 230, Math.PI, Math.PI * 1.5); x.stroke(); x.setLineDash([]); });
+  const s2 = inOut(t, 7.8, 11.4);
+  text('Check switches, outlets, door swing', 90, 1380 + s2.dy, 52, 700, P.ink, 900, 62, s2.a * fade);
+  // hardware question
+  const s3 = inOut(t, 11.6, BODY - .6);
+  ic(11.6, () => { x.fillStyle = P.accent; x.beginPath(); x.arc(540, 620, 24, 0, 7); x.fill();
+    x.strokeStyle = P.accent; x.lineWidth = 10; x.beginPath(); x.moveTo(540, 640); x.lineTo(540, 676); x.stroke(); });
+  text('Ask us about the hanging hardware', 90, 1380 + s3.dy, 52, 700, P.accent, 900, 62, s3.a * fade);
+  endCard(t);
+}
+
+// ---------- V-S01: lavender from seed ----------
+function sprig(cx, cy, s, p, col) {
+  x.strokeStyle = '#5F7F55'; x.lineWidth = 6 * s; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(cx, cy); x.lineTo(cx, cy - 260 * s * p); x.stroke();
+  for (let k = 0; k < 9; k++) {
+    const by = cy - 120 * s - k * 17 * s; if (by < cy - 260 * s * p) continue;
+    x.fillStyle = col; const r = (11 - k * .6) * s;
+    x.beginPath(); x.ellipse(cx - 9 * s, by, r, r * .7, -.6, 0, 7); x.fill();
+    x.beginPath(); x.ellipse(cx + 9 * s, by - 8 * s, r, r * .7, .6, 0, 7); x.fill();
+  }
+}
+function drawLavender(t) {
+  const P = CFG.palette; bg(P.bg, P.accent);
+  const fade = 1 - prog(t, BODY - .6, BODY);
+  const top = inOut(t, 0, BODY - .6);
+  pill(CFG.tag, 90, 250 + top.dy, P.accent, '#fff', top.a);
+  const h = inOut(t, .2, 3.2);
+  text('Lavender seeds are slow.', 90, 520 + h.dy, 80, 900, P.ink, 900, 94, h.a);
+  text("Here's what to expect.", 90, 720 + h.dy, 64, 700, P.accent, 900, 78, h.a);
+  x.globalAlpha = h.a;
+  [0, 1, 2].forEach(i => sprig(640 + i * 110, 1300, 1.1, prog(t, .6 + i * .3, 2.4 + i * .3), P.flower[i % 2]));
+  x.globalAlpha = 1;
+  // step 1: depth cross-section
+  const a1 = inOut(t, 3.4, 8.2);
+  if (a1.a > 0) {
+    x.globalAlpha = a1.a * fade;
+    x.fillStyle = '#7A5A43'; x.fillRect(90, 760, 900, 360);
+    x.fillStyle = '#F2EFE8'; for (let k = 0; k < 26; k++) { x.beginPath(); x.arc(110 + (k * 137) % 860, 772 + (k * 53) % 30, 7, 0, 7); x.fill(); }
+    x.fillStyle = '#2E2219'; x.beginPath(); x.ellipse(540, 806, 16, 10, 0, 0, 7); x.fill();
+    x.strokeStyle = P.ink; x.lineWidth = 4; x.beginPath(); x.moveTo(600, 760); x.lineTo(600, 806); x.stroke();
+    x.globalAlpha = 1;
+    text('1/8 inch deep', 630, 680 + a1.dy, 44, 900, P.ink, 400, 52, a1.a * fade);
+    text('Cover lightly — perlite works well', 90, 1180 + a1.dy, 46, 700, P.ink, 900, 56, a1.a * fade);
+  }
+  // step 2: ~70°F, 14–21 days
+  const a2 = inOut(t, 8.4, 13.2);
+  if (a2.a > 0) {
+    x.globalAlpha = a2.a * fade;
+    x.fillStyle = '#fff'; rr(110, 700, 90, 420, 45); x.fill();
+    x.fillStyle = '#C0533A'; x.beginPath(); x.arc(155, 1080, 46, 0, 7); x.fill();
+    x.fillRect(140, 1080 - 260 * prog(t, 8.6, 9.6), 30, 260 * prog(t, 8.6, 9.6));
+    x.globalAlpha = 1;
+    text('about 70°F', 240, 760 + a2.dy, 60, 900, P.ink, 700, 70, a2.a * fade);
+    text('Germination usually begins in 14–21 days', 240, 850 + a2.dy, 44, 700, P.accent, 740, 54, a2.a * fade);
+    for (let d = 0; d < 21; d++) {           // calendar: days 14–21 highlighted
+      const cx = 250 + (d % 7) * 104, cy = 990 + Math.floor(d / 7) * 64, on = d >= 13 ? prog(t, 10 + (d - 13) * .15, 10.5 + (d - 13) * .15) : 0;
+      x.globalAlpha = a2.a * fade; x.fillStyle = on ? lerpCol('#E6DEEF', P.accent, on) : '#E6DEEF';
+      rr(cx, cy, 90, 52, 10); x.fill(); x.globalAlpha = 1;
+    }
+    text('Follow the packet\'s pre-treatment directions', 90, 1240 + a2.dy, 40, 400, P.ink, 900, 50, inOut(t, 10.4, 13.2).a * fade);
+  }
+  // step 3: sun + drainage
+  const a3 = inOut(t, 13.4, BODY - .6);
+  if (a3.a > 0) {
+    x.globalAlpha = a3.a * fade; x.fillStyle = '#E8B33A';
+    x.beginPath(); x.arc(300, 900, 90, 0, 7); x.fill();
+    x.strokeStyle = '#E8B33A'; x.lineWidth = 12;
+    for (let k = 0; k < 12; k++) { const an = k * Math.PI / 6 + t * .2; x.beginPath(); x.moveTo(300 + Math.cos(an) * 120, 900 + Math.sin(an) * 120); x.lineTo(300 + Math.cos(an) * 160, 900 + Math.sin(an) * 160); x.stroke(); }
+    x.fillStyle = '#7A5A43'; x.fillRect(560, 900, 380, 200);
+    x.fillStyle = '#5DA0D0'; for (let k = 0; k < 6; k++) { const dy = ((t * 120 + k * 40) % 200); x.beginPath(); x.arc(600 + k * 60, 900 + dy, 10, 0, 7); x.fill(); }
+    x.globalAlpha = 1;
+    text('Full sun · excellent drainage', 90, 1180 + a3.dy, 54, 900, P.ink, 900, 64, a3.a * fade);
+  }
+  const s = inOut(t, 3.4, BODY - .6);
+  text(CFG.source, 90, 1470 + s.dy, 30, 400, P.muted, 900, 38, s.a);
+  endCard(t);
+}
+
+window.draw = function (t) {
+  x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.setLineDash([]);
+  ({ qa: drawQA, product: drawProduct, mirror: drawMirror, lavender: drawLavender })[CFG.kind](t);
+};
+draw(0);
+</script>
+</body></html>

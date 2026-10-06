@@ -1,0 +1,309 @@
+[
+ {
+  "id": "Q-N14-Q1",
+  "slug": "lettuce-timing",
+  "kind": "qa",
+  "visual": "seasons",
+  "tag": "GARDEN Q&A · LETTUCE",
+  "domain": "nuptialco.com",
+  "question": "When should I sow Tom Thumb lettuce?",
+  "answer": [
+   "Aim for cool spring or fall weather.",
+   "Local frost dates and heat",
+   "matter more than one national calendar."
+  ],
+  "source": "Source: NC State Extension Plant Toolbox",
+  "product": "Tom Thumb Dwarf Lettuce Seeds – 300 seeds",
+  "endKicker": "Shop the seeds",
+  "endNote": "Link in the description",
+  "url": "https://nuptialco.com/product/tom-thumb-dwarf-lettuce-seeds-300-seeds/",
+  "sourceUrl": "https://plants.ces.ncsu.edu/plants/lactuca-sativa/",
+  "palette": {
+   "bg": "#F6F1E7",
+   "ink": "#23382C",
+   "accent": "#4E7A4A",
+   "accentLight": "#CFE3B8",
+   "dark": "#23382C",
+   "soft": "#E3DCCB",
+   "muted": "#6F6A5E",
+   "flower": [
+    "#C978B5",
+    "#E7A33E"
+   ]
+  }
+ },
+ {
+  "id": "Q-N18-Q1",
+  "slug": "lavender-from-seed",
+  "kind": "qa",
+  "visual": "tray",
+  "tag": "GARDEN Q&A · LAVENDER",
+  "domain": "nuptialco.com",
+  "question": "Is English lavender easy to grow from seed?",
+  "answer": [
+   "It takes patience.",
+   "Germination is slow.",
+   "Seeds won't all emerge together."
+  ],
+  "source": "Source: Utah State University Extension",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "endKicker": "Shop the seeds",
+  "endNote": "Link in the description",
+  "url": "https://nuptialco.com/product/bulk-english-lavender-seeds-500-seeds/",
+  "sourceUrl": "https://extension.usu.edu/yardandgarden/research/english-lavender-in-the-garden",
+  "palette": {
+   "bg": "#F4F0F7",
+   "ink": "#2E2440",
+   "accent": "#7A5BA6",
+   "accentLight": "#D8C9F0",
+   "dark": "#2E2440",
+   "soft": "#E4DCEC",
+   "muted": "#6E6680",
+   "flower": [
+    "#9C7CC9",
+    "#7A5BA6"
+   ]
+  }
+ },
+ {
+  "id": "Q-N09-Q1",
+  "slug": "hollyhock-height",
+  "kind": "qa",
+  "visual": "height",
+  "tag": "GARDEN Q&A · HOLLYHOCKS",
+  "domain": "nuptialco.com",
+  "question": "How tall do hollyhocks grow?",
+  "answer": [
+   "Many reach 6–8 feet.",
+   "Give them the back of a border.",
+   "This mix's exact height varies by seed lot."
+  ],
+  "source": "Source: SDSU Extension",
+  "product": "Mixed Color Hollyhock Seeds – 25 seeds",
+  "endKicker": "Shop the seeds",
+  "endNote": "Link in the description",
+  "url": "https://nuptialco.com/product/mixed-color-hollyhock-seeds-25-seeds/",
+  "sourceUrl": "https://extension.sdstate.edu/growing-hollyhocks",
+  "palette": {
+   "bg": "#FBF2F2",
+   "ink": "#3A1E2A",
+   "accent": "#B8456A",
+   "accentLight": "#F2C2D2",
+   "dark": "#3A1E2A",
+   "soft": "#F0DCDF",
+   "muted": "#7A6268",
+   "flower": [
+    "#E07A9B",
+    "#F2C14E",
+    "#B8456A",
+    "#F4F0F0"
+   ]
+  }
+ },
+ {
+  "id": "Q-N07-Q1",
+  "slug": "snapdragon-start",
+  "kind": "qa",
+  "visual": "weeks",
+  "sourceAt": 10,
+  "tag": "GARDEN Q&A · SNAPDRAGONS",
+  "domain": "nuptialco.com",
+  "question": "When should I start Speedy Sonnet snapdragons?",
+  "answer": [
+   "In general, sow snapdragons indoors",
+   "8–10 weeks before your last frost.",
+   "Our listing: 8–10 weeks before transplanting.",
+   "Follow the packet. Adjust for your climate."
+  ],
+  "source": "Source: Mississippi State University Extension",
+  "product": "Speedy Sonnet Purple Snapdragon Seeds – 25 pelleted seeds",
+  "endKicker": "Shop the seeds",
+  "endNote": "Link in the description",
+  "url": "https://nuptialco.com/product/speedy-sonnet-purple-snapdragon-seeds-25-pelleted-seeds/",
+  "sourceUrl": "https://extension.msstate.edu/publications/snapdragon-antirrhinum-majus-for-the-farmer-florist",
+  "palette": {
+   "bg": "#F7F1F6",
+   "ink": "#2F1B33",
+   "accent": "#8E3C8F",
+   "accentLight": "#E6C3E6",
+   "dark": "#2F1B33",
+   "soft": "#E9DDE8",
+   "muted": "#74667A",
+   "flower": [
+    "#8E3C8F"
+   ]
+  }
+ },
+ {
+  "id": "V-S01",
+  "slug": "lavender-be-patient",
+  "kind": "lavender",
+  "body": 19,
+  "tag": "SOWING LAVENDER",
+  "domain": "nuptialco.com",
+  "source": "Sources: Utah State University & NC State Extension",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "endKicker": "Shop the seeds",
+  "endNote": "Link in the description",
+  "url": "https://nuptialco.com/product/bulk-english-lavender-seeds-500-seeds/",
+  "sourceUrl": "https://extension.usu.edu/yardandgarden/research/english-lavender-in-the-garden",
+  "palette": {
+   "bg": "#F4F0F7",
+   "ink": "#2E2440",
+   "accent": "#6E4FA0",
+   "accentLight": "#D8C9F0",
+   "dark": "#2E2440",
+   "soft": "#E4DCEC",
+   "muted": "#6E6680",
+   "flower": [
+    "#9C7CC9",
+    "#6E4FA0"
+   ]
+  }
+ },
+ {
+  "id": "FP-H1",
+  "slug": "accent-chair",
+  "kind": "product",
+  "tag": "BEFORE YOU ORDER",
+  "domain": "noralanehome.com",
+  "title": "Natural Wood Tufted Accent Chair: 3 things to check",
+  "dims": "23.2 × 24 × 26.3 in",
+  "checks": [
+   "Measure the seating spot and the delivery route.",
+   "Confirm which figure is width, depth and height, plus seat height.",
+   "Assembly isn't stated on the listing — ask us."
+  ],
+  "product": "Natural Wood Tufted Accent Chair",
+  "endKicker": "See the listing",
+  "endNote": "Link in the description",
+  "url": "https://noralanehome.com/product/natural-wood-tufted-accent-chair-b346p320760/",
+  "palette": {
+   "bg": "#F7F3EE",
+   "ink": "#2A2622",
+   "accent": "#B5562F",
+   "accentLight": "#F0C9A8",
+   "dark": "#2A2622",
+   "soft": "#E9E1D6",
+   "muted": "#7A7066",
+   "flower": [
+    "#B5562F"
+   ]
+  }
+ },
+ {
+  "id": "FP-H3",
+  "slug": "storage-nightstand",
+  "kind": "product",
+  "tag": "BEFORE YOU ORDER",
+  "domain": "noralanehome.com",
+  "title": "Storage Nightstand: measure before you buy",
+  "dims": "13.78 × 17.72 × 23.62 in",
+  "checks": [
+   "Measure the bedside space.",
+   "Leave room for the drawer to open.",
+   "Confirm which figure is the height, then compare with your mattress.",
+   "Check the delivery route to the bedroom."
+  ],
+  "product": "Storage Nightstand (B182P391930)",
+  "endKicker": "See the listing",
+  "endNote": "Link in the description",
+  "url": "https://noralanehome.com/product/brown-storage-nightstand-b182p391930/",
+  "palette": {
+   "bg": "#F4F3EE",
+   "ink": "#2B2A24",
+   "accent": "#5E6B4E",
+   "accentLight": "#CFD8BE",
+   "dark": "#2B2A24",
+   "soft": "#E3E2D8",
+   "muted": "#74726A",
+   "flower": [
+    "#5E6B4E"
+   ]
+  }
+ },
+ {
+  "id": "FP-H7",
+  "slug": "silver-wall-mirror",
+  "kind": "product",
+  "tag": "BEFORE YOU ORDER",
+  "domain": "noralanehome.com",
+  "title": "Silver Wall Mirror: plan the wall first",
+  "dims": "29.92 × 29.92 × 1.18 in",
+  "checks": [
+   "Measure the wall area.",
+   "Note nearby switches, outlets and lights.",
+   "Confirm the hanging method and hardware with us.",
+   "No moisture rating is listed — check before a bathroom."
+  ],
+  "product": "Silver Wall Mirror",
+  "endKicker": "See the listing",
+  "endNote": "Link in the description",
+  "url": "https://noralanehome.com/product/silver-wall-mirror-w1445p370441/",
+  "palette": {
+   "bg": "#F2F4F6",
+   "ink": "#1F2A33",
+   "accent": "#4F6D86",
+   "accentLight": "#C3D3E2",
+   "dark": "#1F2A33",
+   "soft": "#DDE3E9",
+   "muted": "#6A747D",
+   "flower": [
+    "#4F6D86"
+   ]
+  }
+ },
+ {
+  "id": "FP-H8",
+  "slug": "black-round-mirror",
+  "kind": "product",
+  "tag": "BEFORE YOU ORDER",
+  "domain": "noralanehome.com",
+  "title": "Black Round Wall Mirror: check size and mounting",
+  "dims": "36.02 × 0.98 × 36.02 in",
+  "checks": [
+   "Tape an approx. 36-inch circle on the wall to see the size.",
+   "Confirm the hanging system and wall types with us.",
+   "Look closely at the photos for the mirror-surface design."
+  ],
+  "product": "Black Round Wall Mirror",
+  "endKicker": "See the listing",
+  "endNote": "Link in the description",
+  "url": "https://noralanehome.com/product/black-round-wall-mirror-w3935p481189/",
+  "palette": {
+   "bg": "#F5F2EC",
+   "ink": "#1E1C1A",
+   "accent": "#8A6A3F",
+   "accentLight": "#E3CFAE",
+   "dark": "#1E1C1A",
+   "soft": "#E6E0D5",
+   "muted": "#736C62",
+   "flower": [
+    "#8A6A3F"
+   ]
+  }
+ },
+ {
+  "id": "V-F01",
+  "slug": "mirror-measure-first",
+  "kind": "mirror",
+  "body": 15,
+  "domain": "noralanehome.com",
+  "product": "Silver Wall Mirror",
+  "endKicker": "See the listing",
+  "endNote": "Link in the description",
+  "url": "https://noralanehome.com/product/silver-wall-mirror-w1445p370441/",
+  "palette": {
+   "bg": "#F2F4F6",
+   "ink": "#1F2A33",
+   "accent": "#4F6D86",
+   "accentLight": "#C3D3E2",
+   "dark": "#1F2A33",
+   "soft": "#DDE3E9",
+   "muted": "#6A747D",
+   "flower": [
+    "#4F6D86"
+   ]
+  }
+ }
+]
