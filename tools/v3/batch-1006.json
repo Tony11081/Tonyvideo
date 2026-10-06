@@ -1,0 +1,721 @@
+[
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "FP-H8",
+  "slug": "v3-black-round-mirror",
+  "template": "fit",
+  "image": "08-black-round-wall-mirror.png",
+  "focus": [
+   0.5,
+   0.42
+  ],
+  "bbox": [
+   0.145,
+   0.145,
+   0.865,
+   0.705
+  ],
+  "detail": {
+   "fx": 0.33,
+   "fy": 0.3,
+   "zoom": 1.9
+  },
+  "hook": [
+   {
+    "text": "Will a",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "36-inch",
+    "beat": 1,
+    "size": 158,
+    "accent": true
+   },
+   {
+    "text": "round mirror",
+    "beat": 2,
+    "size": 112
+   },
+   {
+    "text": "fit your wall?",
+    "beat": 3,
+    "size": 112
+   }
+  ],
+  "hookY": 1420,
+  "measure": {
+   "value": 36.02,
+   "decimals": 2,
+   "unit": "in",
+   "caption": "36.02 in, as listed"
+  },
+  "shape": "circle",
+  "checks": [
+   "Ask us how it hangs",
+   "Zoom in on the surface"
+  ],
+  "product": "Black Round Wall Mirror",
+  "dims": "36.02 × 0.98 × 36.02 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#14110F",
+   "ink": "#1E1C1A",
+   "accent": "#8A6A3F",
+   "accent2": "#E8CC9F",
+   "dark": "#151311",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "music": {
+   "style": "home",
+   "seed": 3
+  },
+  "facts": "社媒文案 FP-H8（大白 10-05 已核）：36.02 x 0.98 x 36.02 in；买前在墙上贴约 36 英寸圆；挂法和墙型问我们；看图确认镜面设计",
+  "scene": {
+   "type": "tape",
+   "label": "≈ 36 in",
+   "caption": "Tape it on your wall first"
+  }
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "V-S01",
+  "slug": "v3-lavender-slow",
+  "template": "grow",
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "focus": [
+   0.52,
+   0.42
+  ],
+  "hook": [
+   {
+    "text": "Lavender seeds",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "are slow",
+    "beat": 1,
+    "size": 168,
+    "accent": true
+   },
+   {
+    "text": "Here's what",
+    "beat": 2,
+    "size": 96
+   },
+   {
+    "text": "to expect",
+    "beat": 3,
+    "size": 96
+   }
+  ],
+  "hookY": 1320,
+  "source": "Sources: Utah State University · NC State Extension",
+  "payoff": "Grow it from seed",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "palette": {
+   "bg": "#F6F2EC",
+   "panel": "#FBF8F3",
+   "ink": "#2E2440",
+   "ink2": "#5E5670",
+   "accent": "#7A5BA6",
+   "accent2": "#D9C8F2",
+   "dark": "#2B2140",
+   "soil": "#7A5A43",
+   "track": "#E4DCEC"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 2
+  },
+  "facts": "社媒文案 V-S01（大白 10-06 13:29 已核）：一般英国薰衣草 1/8 英寸深、轻覆珍珠岩；约 70°F 时通常 14–21 天开始发芽；按包装说明做预处理；全日照、排水极好",
+  "textOn": "light",
+  "scenes": [
+   {
+    "type": "depth",
+    "chip": "1/8 in",
+    "cover": true,
+    "title": "1/8 inch deep",
+    "sub": "Cover lightly with perlite"
+   },
+   {
+    "type": "days",
+    "max": 21,
+    "range": [
+     14,
+     21
+    ],
+    "title": "14–21 days",
+    "sub": "Germination usually begins · about 70°F"
+   },
+   {
+    "type": "sun",
+    "title": "Full sun",
+    "sub": "Excellent drainage",
+    "note": "Follow the packet's pre-treatment directions"
+   }
+  ]
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "FP-H1",
+  "slug": "v3-accent-chair",
+  "template": "fit",
+  "image": "01-natural-wood-tufted-accent-chair.png",
+  "focus": [
+   0.5,
+   0.48
+  ],
+  "bbox": [
+   0.185,
+   0.26,
+   0.81,
+   0.71
+  ],
+  "detail": {
+   "fx": 0.45,
+   "fy": 0.45,
+   "zoom": 2.0
+  },
+  "shape": "rect",
+  "hook": [
+   {
+    "text": "Which number",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "is the",
+    "beat": 1,
+    "size": 112
+   },
+   {
+    "text": "width?",
+    "beat": 2,
+    "size": 170,
+    "accent": true
+   }
+  ],
+  "hookY": 1400,
+  "measure": {
+   "text": "23.2 × 24 × 26.3 in",
+   "caption": "Listed size · ask us which is which"
+  },
+  "scene": {
+   "type": "door",
+   "caption": "Measure the doorway too"
+  },
+  "checks": [
+   "Measure the seating spot",
+   "Assembly? Ask us"
+  ],
+  "product": "Natural Wood Tufted Accent Chair",
+  "dims": "23.2 × 24 × 26.3 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "music": {
+   "style": "home",
+   "seed": 6
+  },
+  "facts": "社媒文案 FP-H1：23.2 × 24 × 26.3 in；量好摆放位置和搬运路线；确认哪个数字是宽、深、高和座高；商品页没写是否需组装，问我们",
+  "lightPhoto": true
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "FP-H3",
+  "slug": "v3-storage-nightstand",
+  "template": "fit",
+  "image": "03-brown-storage-nightstand.png",
+  "focus": [
+   0.6,
+   0.55
+  ],
+  "bbox": [
+   0.395,
+   0.405,
+   0.84,
+   0.78
+  ],
+  "detail": {
+   "fx": 0.61,
+   "fy": 0.46,
+   "zoom": 2.2
+  },
+  "shape": "rect",
+  "hook": [
+   {
+    "text": "Will it fit",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "by your",
+    "beat": 1,
+    "size": 112
+   },
+   {
+    "text": "bed?",
+    "beat": 2,
+    "size": 180,
+    "accent": true
+   }
+  ],
+  "hookY": 1400,
+  "measure": {
+   "text": "13.78 × 17.72 × 23.62 in",
+   "caption": "As listed · check which is the height"
+  },
+  "scene": {
+   "type": "drawer",
+   "caption": "Leave room for the drawer"
+  },
+  "checks": [
+   "Compare height to your mattress",
+   "Check the route to the bedroom"
+  ],
+  "product": "Storage Nightstand",
+  "dims": "13.78 × 17.72 × 23.62 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "music": {
+   "style": "home",
+   "seed": 7
+  },
+  "facts": "社媒文案 FP-H3：13.78 × 17.72 × 23.62 in；量床边空间；给抽屉留拉开的空间；确认哪个是高度再和床垫比；查好搬到卧室的路线"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "FP-H7",
+  "slug": "v3-silver-wall-mirror",
+  "template": "fit",
+  "image": "07-silver-wall-mirror.png",
+  "focus": [
+   0.5,
+   0.36
+  ],
+  "bbox": [
+   0.155,
+   0.125,
+   0.815,
+   0.58
+  ],
+  "detail": {
+   "fx": 0.3,
+   "fy": 0.2,
+   "zoom": 2.0
+  },
+  "shape": "octagon",
+  "hook": [
+   {
+    "text": "Will a",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "30-inch",
+    "beat": 1,
+    "size": 158,
+    "accent": true
+   },
+   {
+    "text": "mirror",
+    "beat": 2,
+    "size": 112
+   },
+   {
+    "text": "fit your wall?",
+    "beat": 3,
+    "size": 112
+   }
+  ],
+  "hookY": 1420,
+  "measure": {
+   "value": 29.92,
+   "decimals": 2,
+   "unit": "in",
+   "caption": "29.92 in, as listed"
+  },
+  "scene": {
+   "type": "tape",
+   "label": "≈ 30 in",
+   "caption": "Tape it on your wall first"
+  },
+  "checks": [
+   "Mind switches & outlets",
+   "Ask us how it hangs"
+  ],
+  "product": "Silver Wall Mirror",
+  "dims": "29.92 × 29.92 × 1.18 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#121417",
+   "ink": "#1C2026",
+   "accent": "#5B7C99",
+   "accent2": "#C9DCEB",
+   "dark": "#14171B",
+   "wall": "#EFEAE2",
+   "tape": "#D08A3A"
+  },
+  "music": {
+   "style": "home",
+   "seed": 8
+  },
+  "facts": "社媒文案 FP-H7：29.92 × 29.92 × 1.18 in；量墙面；注意附近开关、插座和灯；挂法和五金问我们；商品页没写防潮等级，放浴室前先确认"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "V-F01",
+  "slug": "v3-mirror-plan-the-wall",
+  "template": "fit",
+  "image": "07-silver-wall-mirror.png",
+  "focus": [
+   0.5,
+   0.36
+  ],
+  "bbox": [
+   0.155,
+   0.125,
+   0.815,
+   0.58
+  ],
+  "detail": {
+   "fx": 0.5,
+   "fy": 0.32,
+   "zoom": 1.7
+  },
+  "shape": "octagon",
+  "hook": [
+   {
+    "text": "Bathroom",
+    "beat": 0,
+    "size": 120
+   },
+   {
+    "text": "mirror?",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "Check this first",
+    "beat": 2,
+    "size": 100
+   }
+  ],
+  "hookY": 1400,
+  "measure": {
+   "text": "29.92 × 29.92 × 1.18 in",
+   "caption": "Listed size"
+  },
+  "scene": {
+   "type": "obstacles",
+   "caption": "Plan around switches & lights"
+  },
+  "checks": [
+   "No moisture rating listed",
+   "Ask us before a bathroom"
+  ],
+  "product": "Silver Wall Mirror",
+  "dims": "29.92 × 29.92 × 1.18 in",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#121417",
+   "ink": "#1C2026",
+   "accent": "#5B7C99",
+   "accent2": "#C9DCEB",
+   "dark": "#14171B",
+   "wall": "#EFEAE2",
+   "tape": "#D08A3A"
+  },
+  "music": {
+   "style": "home",
+   "seed": 10
+  },
+  "facts": "同 FP-H7（大白已核）：没写防潮等级，放浴室前先问；注意开关、插座和灯"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "Q-N14-Q1",
+  "slug": "v3-lettuce-timing",
+  "template": "grow",
+  "image": "NCS-SC-LC093C-tom-thumb-lettuce-AI-v2.png",
+  "focus": [
+   0.5,
+   0.5
+  ],
+  "textOn": "light",
+  "hook": [
+   {
+    "text": "When should",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "you sow",
+    "beat": 1,
+    "size": 108
+   },
+   {
+    "text": "lettuce?",
+    "beat": 2,
+    "size": 170,
+    "accent": true
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "seasons",
+    "on": [
+     "Spring",
+     "Fall"
+    ],
+    "title": "Cool spring or fall",
+    "sub": "Aim for cool weather"
+   },
+   {
+    "type": "frost",
+    "left": "Frost dates",
+    "right": "Heat",
+    "title": "Check your local dates",
+    "sub": "Frost dates and heat matter"
+   },
+   {
+    "type": "calendar",
+    "title": "Not one national date",
+    "sub": "Your local dates matter more"
+   }
+  ],
+  "source": "Source: NC State Extension Plant Toolbox",
+  "payoff": "Grow it from seed",
+  "product": "Tom Thumb Dwarf Lettuce Seeds – 300 seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "palette": {
+   "bg": "#F3F5EE",
+   "panel": "#FAFBF6",
+   "ink": "#22301E",
+   "ink2": "#55624F",
+   "accent": "#4E8A3A",
+   "accent2": "#CFE6BF",
+   "dark": "#1F2B1B",
+   "soil": "#7A5A43",
+   "track": "#DCE5D3"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 1
+  },
+  "facts": "社媒文案 Q-N14-Q1：凉爽的春季或秋季播；当地霜期和高温比全国统一日历更重要；来源 NC State Extension"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "Q-N18-Q1",
+  "slug": "v3-lavender-from-seed",
+  "template": "grow",
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "focus": [
+   0.52,
+   0.42
+  ],
+  "textOn": "light",
+  "hook": [
+   {
+    "text": "Is lavender",
+    "beat": 0,
+    "size": 110
+   },
+   {
+    "text": "easy",
+    "beat": 1,
+    "size": 180,
+    "accent": true
+   },
+   {
+    "text": "from seed?",
+    "beat": 2,
+    "size": 110
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "days",
+    "max": 21,
+    "range": [
+     14,
+     21
+    ],
+    "title": "Slow to sprout",
+    "sub": "Usually begins in 14–21 days · about 70°F"
+   },
+   {
+    "type": "tray",
+    "max": 21,
+    "sproutDays": [
+     15,
+     19,
+     18,
+     14,
+     20,
+     16,
+     21,
+     19,
+     15,
+     21,
+     17,
+     14
+    ],
+    "title": "Not all at once",
+    "sub": "Seeds won't all emerge together"
+   },
+   {
+    "type": "packet",
+    "title": "It takes patience",
+    "sub": "Follow the packet's pre-treatment directions"
+   }
+  ],
+  "source": "Sources: Utah State University · NC State Extension",
+  "payoff": "Grow it from seed",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "palette": {
+   "bg": "#F6F2EC",
+   "panel": "#FBF8F3",
+   "ink": "#2E2440",
+   "ink2": "#5E5670",
+   "accent": "#7A5BA6",
+   "accent2": "#D9C8F2",
+   "dark": "#2B2140",
+   "soil": "#7A5A43",
+   "track": "#E4DCEC"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 2
+  },
+  "facts": "社媒文案 Q-N18-Q1 + V-S01（大白已核）：需要耐心；发芽慢；不会同时出苗；约 70°F 时通常 14–21 天开始发芽；按包装做预处理"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "Q-N07-Q1",
+  "slug": "v3-snapdragon-start",
+  "template": "grow",
+  "image": "T172-Pin-N07-rev1.png",
+  "focus": [
+   0.5,
+   0.8
+  ],
+  "zoom": 1.5,
+  "textOn": "light",
+  "hook": [
+   {
+    "text": "When do you",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "start",
+    "beat": 1,
+    "size": 108
+   },
+   {
+    "text": "snapdragons?",
+    "beat": 2,
+    "size": 120,
+    "accent": true
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "weeks",
+    "max": 12,
+    "range": [
+     8,
+     10
+    ],
+    "endLabel": "Last frost",
+    "title": "8–10 weeks early",
+    "sub": "Sow indoors before your last frost",
+    "rangeLabel": "8–10 wks before"
+   },
+   {
+    "type": "transplant",
+    "arrowLabel": "8–10 weeks",
+    "title": "Our listing says",
+    "sub": "8–10 weeks before transplanting"
+   },
+   {
+    "type": "packet",
+    "title": "Adjust for your climate",
+    "sub": "And follow the packet"
+   }
+  ],
+  "source": "Source: Mississippi State University Extension",
+  "payoff": "Start them indoors",
+  "product": "Speedy Sonnet Purple Snapdragon Seeds – 25 pelleted seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "palette": {
+   "bg": "#F7F3EE",
+   "panel": "#FCFAF6",
+   "ink": "#2C2238",
+   "ink2": "#5D5469",
+   "accent": "#8E3C8C",
+   "accent2": "#E9CBE6",
+   "dark": "#2A1F33",
+   "soil": "#7A5A43",
+   "track": "#E7DDE6"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 4
+  },
+  "facts": "社媒文案 Q-N07-Q1：一般在最后霜期前 8–10 周室内播；我们商品页写移栽前 8–10 周；按包装说明、按当地气候调整；来源 MSU Extension"
+ }
+]
