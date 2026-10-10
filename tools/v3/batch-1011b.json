@@ -1,0 +1,259 @@
+[
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "Q-N11-Q2",
+  "slug": "v3-twinny-snapdragon-germination",
+  "image": "NCS-SC-TW-twinny-violet-snapdragon-AI-v1.png",
+  "focus": [
+   0.5,
+   0.66
+  ],
+  "hook": [
+   {
+    "text": "How long do Twinny",
+    "beat": 0,
+    "size": 88
+   },
+   {
+    "text": "snapdragon seeds",
+    "beat": 1,
+    "size": 108,
+    "accent": true
+   },
+   {
+    "text": "take to germinate?",
+    "beat": 2,
+    "size": 88
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "days",
+    "max": 14,
+    "range": [
+     7,
+     14
+    ],
+    "title": "7–14 days",
+    "sub": "Mississippi State gives 7–14 days at 70–75°F"
+   },
+   {
+    "type": "tray",
+    "max": 14,
+    "sproutDays": [
+     9,
+     12,
+     8,
+     14,
+     11,
+     7,
+     13,
+     10,
+     8,
+     12,
+     14,
+     9
+    ],
+    "title": "Results vary",
+    "sub": "with seed and growing conditions"
+   },
+   {
+    "type": "packet",
+    "title": "This is general snapdragon guidance",
+    "sub": "Results vary with seed and growing conditions"
+   }
+  ],
+  "source": "Source: Mississippi State University Extension",
+  "payoff": "7–14 days at 70–75°F",
+  "product": "Twinny Violet Snapdragon Seeds – 25 seeds",
+  "palette": {
+   "bg": "#F7F3EE",
+   "panel": "#FCFAF6",
+   "ink": "#2C2238",
+   "ink2": "#5D5469",
+   "accent": "#8E3C8C",
+   "accent2": "#E9CBE6",
+   "dark": "#2A1F33",
+   "soil": "#7A5A43",
+   "track": "#E7DDE6"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 31
+  },
+  "facts": "社媒文案 Q-N11-Q2（大白已核，文字照 10-11 工作单第 26 行原文）：Mississippi State 给出 70–75°F 时 7–14 天；这是金鱼草通用指导，结果因种子和条件而异；来源 Mississippi State University Extension；插画 Codex（Win）10-11 00:25 交"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "Q-N17-Q2",
+  "slug": "v3-celeriac-surface-sow",
+  "image": "NCS-SC-GP-giant-prague-celeriac-AI-v1.png",
+  "focus": [
+   0.5,
+   0.64
+  ],
+  "hook": [
+   {
+    "text": "Should I bury",
+    "beat": 0,
+    "size": 110
+   },
+   {
+    "text": "celeriac seed",
+    "beat": 1,
+    "size": 140,
+    "accent": true
+   },
+   {
+    "text": "deeply?",
+    "beat": 2,
+    "size": 110
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "surface",
+    "mode": "wrong",
+    "chip": "Buried deep",
+    "title": "No.",
+    "sub": "Germination needs light"
+   },
+   {
+    "type": "surface",
+    "mode": "right",
+    "dust": true,
+    "chip": "Light soil sprinkling",
+    "title": "Use a light soil sprinkling",
+    "sub": "and maintain moisture"
+   },
+   {
+    "type": "tray",
+    "max": 21,
+    "sproutDays": [
+     15,
+     null,
+     18,
+     14,
+     null,
+     20,
+     16,
+     null,
+     19,
+     21,
+     null,
+     17
+    ],
+    "title": "Emergence may take",
+    "sub": "two weeks or more"
+   }
+  ],
+  "source": "Source: UC Agriculture and Natural Resources",
+  "payoff": "Germination needs light",
+  "product": "Giant Prague Celeriac Seeds – 500 seeds",
+  "palette": {
+   "bg": "#F3F5EE",
+   "panel": "#FAFBF6",
+   "ink": "#22301E",
+   "ink2": "#55624F",
+   "accent": "#4E8A3A",
+   "accent2": "#CFE6BF",
+   "dark": "#1F2B1B",
+   "soil": "#7A5A43",
+   "track": "#DCE5D3"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 32
+  },
+  "facts": "社媒文案 Q-N17-Q2（大白已核，文字照 10-11 工作单第 27 行原文）：不要深埋；发芽需要光，只薄薄撒一层土并保持湿润；出苗可能要两周或更久；来源 UC Agriculture and Natural Resources；插画 Codex（Win）10-11 00:25 交。育苗盘里各格出苗天数是示意"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "fit",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "id": "V-F06",
+  "slug": "v3-coffee-table-tape-out",
+  "image": "V-F06-black-round-storage-coffee-table.jpg",
+  "focus": [
+   0.55,
+   0.6
+  ],
+  "bbox": [
+   0.225,
+   0.45,
+   0.835,
+   0.86
+  ],
+  "shape": "circle",
+  "lightPhoto": true,
+  "detail": {
+   "fx": 0.55,
+   "fy": 0.52,
+   "zoom": 2.0
+  },
+  "hook": [
+   {
+    "text": "Try this before",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "buying a",
+    "beat": 1,
+    "size": 108
+   },
+   {
+    "text": "coffee table",
+    "beat": 2,
+    "size": 150,
+    "accent": true
+   }
+  ],
+  "hookY": 1400,
+  "measure": {
+   "text": "31.5 × 31.5 × 18.11 in",
+   "caption": "As listed"
+  },
+  "scene": {
+   "type": "walk",
+   "caption": "Tape it out and walk around it"
+  },
+  "checks": [
+   "Measure the open floor",
+   "Round tops have no corners"
+  ],
+  "product": "Black Round Storage Coffee Table",
+  "dims": "31.5 × 31.5 × 18.11 in",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "music": {
+   "style": "home",
+   "seed": 33
+  },
+  "facts": "社媒文案 V-F06（大白 10-05 已核脚本）：买前量沙发长度和前面的空地；用美纹纸贴出桌面轮廓、绕着走一天；靠主通道放时圆桌面没有角；商品图与尺寸 31.5 × 31.5 × 18.11 in 来自商品页（Codex（Win）10-11 00:24 实读）；商品名按商品页网址推定，发布人上传时核对"
+ }
+]
