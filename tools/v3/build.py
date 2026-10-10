@@ -2,6 +2,7 @@
 
 Usage: python3 tools/v3/build.py tools/v3/<batch>.json [ID ...] [--stills]
   --stills  only render one frame per beat into a contact sheet (review before the full render)
+  --remux-audio  rebuild the soundtrack of an already rendered video (two-pass loudnorm), picture copied
 """
 import base64, io, json, os, shutil, subprocess, sys
 import numpy as np
@@ -51,6 +52,46 @@ def storyboard(cfg):
     return '\n'.join(out) + '\n'
 
 
+def loudnorm_filter(wav):
+    """Two-pass loudnorm: measure first, then normalise linearly to -14 LUFS / -1.5 dBTP."""
+    r = subprocess.run(['ffmpeg', '-hide_banner', '-i', wav, '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11:print_format=json',
+                        '-f', 'null', '-'], capture_output=True, text=True)
+    j = r.stderr[r.stderr.rindex('{'):r.stderr.rindex('}') + 1]
+    m = json.loads(j)
+    return (f"loudnorm=I=-14:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
+            f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true,"
+            "alimiter=limit=0.75:level=false")
+
+
+def mux(video, wav, mp4):
+    """video: any file whose first video stream is the finished picture (copied, not re-encoded)."""
+    tmp = mp4 + '.tmp.mp4'
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', video, '-i', wav, '-map', '0:v:0', '-map', '1:a',
+                    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-af', loudnorm_filter(wav), '-ar', '44100',
+                    '-shortest', '-movflags', '+faststart',
+                    '-metadata', 'comment=Product images from our listings; original synthesized music and SFX', tmp], check=True)
+    os.replace(tmp, mp4)
+
+
+def remux_audio(cfg):
+    """Rebuild only the soundtrack of an already rendered video (picture stream copied)."""
+    folder = f"{cfg['id']}-{cfg['slug']}"
+    out_dir = os.path.join(ROOT, 'videos', folder)
+    src = os.path.join(out_dir, 'source.html')
+    with sync_playwright() as p:
+        b = p.chromium.launch(args=['--allow-file-access-from-files'])
+        pg = page_for(b, src)
+        events = pg.evaluate('(() => { draw(0); return window.EVENTS; })()')
+        b.close()
+    evf = os.path.join(out_dir, '_events.json'); json.dump(events, open(evf, 'w'))
+    wav = os.path.join(out_dir, '_audio.wav'); m = cfg['music']
+    subprocess.run([sys.executable, AUDIO, m['style'], str(cfg.get('bpm', 120)), str(cfg.get('beats', 32)), str(m['seed']), evf, wav], check=True)
+    mp4 = os.path.join(out_dir, folder + '.mp4')
+    mux(mp4, wav, mp4)
+    os.remove(evf); os.remove(wav)
+    return mp4
+
+
 def build(cfg, stills=False):
     folder = f"{cfg['id']}-{cfg['slug']}"
     out_dir = os.path.join(ROOT, 'videos', folder)
@@ -91,10 +132,7 @@ def build(cfg, stills=False):
     m = cfg['music']
     subprocess.run([sys.executable, AUDIO, m['style'], str(cfg.get('bpm', 120)), str(cfg.get('beats', 32)), str(m['seed']), evf, wav], check=True)
     mp4 = os.path.join(out_dir, folder + '.mp4')
-    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', silent, '-i', wav, '-map', '0:v', '-map', '1:a',
-                    '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=9', '-ar', '44100',
-                    '-shortest', '-movflags', '+faststart',
-                    '-metadata', 'comment=Product images from our listings; original synthesized music and SFX', mp4], check=True)
+    mux(silent, wav, mp4)
     for f in (silent, wav, evf):
         os.remove(f)
     open(os.path.join(out_dir, '分镜.md'), 'w', encoding='utf-8').write(storyboard(cfg))
@@ -105,9 +143,10 @@ def build(cfg, stills=False):
 if __name__ == '__main__':
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     stills = '--stills' in sys.argv
+    remux = '--remux-audio' in sys.argv
     batch = json.load(open(args[0], encoding='utf-8'))
     only = set(args[1:])
     for cfg in batch:
         if only and cfg['id'] not in only:
             continue
-        print(cfg['id'], build(cfg, stills), flush=True)
+        print(cfg['id'], remux_audio(cfg) if remux else build(cfg, stills), flush=True)
