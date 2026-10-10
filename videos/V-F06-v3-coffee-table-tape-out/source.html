@@ -1,0 +1,618 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>window.CONFIG = {"bpm": 120, "beats": 32, "ctaNote": "Link in the description", "template": "fit", "domain": "noralanehome.com", "ctaLine": "See it on", "id": "V-F06", "slug": "v3-coffee-table-tape-out", "image": "V-F06-black-round-storage-coffee-table.jpg", "focus": [0.55, 0.6], "bbox": [0.225, 0.45, 0.835, 0.86], "shape": "circle", "lightPhoto": true, "detail": {"fx": 0.55, "fy": 0.52, "zoom": 2.0}, "hook": [{"text": "Try this before", "beat": 0, "size": 108}, {"text": "buying a", "beat": 1, "size": 108}, {"text": "coffee table", "beat": 2, "size": 150, "accent": true}], "hookY": 1400, "measure": {"text": "31.5 × 31.5 × 18.11 in", "caption": "As listed"}, "scene": {"type": "walk", "caption": "Tape it out and walk around it"}, "checks": ["Measure the open floor", "Round tops have no corners"], "product": "Black Round Storage Coffee Table", "dims": "31.5 × 31.5 × 18.11 in", "palette": {"bg": "#16120E", "ink": "#1E1A16", "accent": "#9A6B3F", "accent2": "#EBCB9E", "dark": "#17130F", "wall": "#EFE8DC", "tape": "#4A8FD1"}, "music": {"style": "home", "seed": 33}, "facts": "社媒文案 V-F06（大白 10-05 已核脚本）：买前量沙发长度和前面的空地；用美纹纸贴出桌面轮廓、绕着走一天；靠主通道放时圆桌面没有角；商品图与尺寸 31.5 × 31.5 × 18.11 in 来自商品页（Codex（Win）10-11 00:24 实读）；商品名按商品页网址推定，发布人上传时核对"};</script>
+<script>
+/* Team video engine v3 (10-06 rewrite after Tony's "不要敷衍" note).
+   Rules taken from the reference library (awesome-opus5-5-videos) and platform guides:
+   - our product is on screen from frame 0; the question lands in the first 2 s
+   - 120 BPM grid: every change lands on a beat; one idea per bar (2 s)
+   - object-driven transitions (the photo itself shrinks, floods, zooms); no crossfades
+   - closed-form springs with < 2 % overshoot; masked type reveals
+   - <= 4 words per line, big, inside the centre safe area
+   - last frame = first frame so the Short loops
+   One canvas, one pure draw(t). Templates: "fit" (furniture), "grow" (seeds). */
+const CFG = window.CONFIG;
+const W = 1080, H = 1920;
+const c = document.getElementById('c'), x = c.getContext('2d');
+const FAM = '"Noto Sans CJK SC","Noto Sans CJK JP",sans-serif';
+const BPM = CFG.bpm || 120, BEAT = 60 / BPM, BEATS = CFG.beats || 32;
+const B = n => n * BEAT;
+window.DURATION = B(BEATS);
+window.EVENTS = [];                       // filled by the template: [{t, kind}] for the sound mix
+const ev = (beat, kind) => window.EVENTS.push({ t: +B(beat).toFixed(4), kind });
+
+// ---------- assets ----------
+const IMG = {};
+const want = [CFG.image].filter(Boolean);
+window.READY = want.length === 0;
+let pending = want.length;
+want.forEach(n => { const im = new Image(); im.onload = () => { IMG[n] = im; if (--pending === 0) { window.READY = true; draw(0); } }; im.src = n; });
+const photo = () => IMG[CFG.image];
+
+// ---------- math ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const easeOut = t => 1 - Math.pow(1 - clamp(t), 4);            // ~cubic-bezier(.16,1,.3,1)
+const easeIO = t => { t = clamp(t); return t < .5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2; };
+function spring(t, w = 14, z = .86) {                          // closed-form step response, ~0.4 % overshoot
+  if (t <= 0) return 0;
+  const wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+}
+// value that changes target several times = sum of springs (stays a pure function of t)
+function track(t, keys, w, z) {
+  let v = keys[0][1];
+  for (let i = 1; i < keys.length; i++) v += (keys[i][1] - keys[i - 1][1]) * spring(t - B(keys[i][0]), w, z);
+  return v;
+}
+const rectTrack = (t, keys, w, z) => [0, 1, 2, 3, 4].map(k => track(t, keys.map(([b, r]) => [b, r[k]]), w, z));
+const win = (t, b0, b1, d = .35) => clamp(Math.min((t - B(b0)) / d, (B(b1) - t) / d));   // 0..1 inside a beat window
+
+// ---------- drawing helpers ----------
+function font(sz, w) { x.font = `${w || 400} ${sz}px ${FAM}`; }
+function rr(rx, ry, rw, rh, r) {
+  r = Math.max(0, Math.min(r, rw / 2, rh / 2));
+  x.beginPath(); x.moveTo(rx + r, ry); x.arcTo(rx + rw, ry, rx + rw, ry + rh, r);
+  x.arcTo(rx + rw, ry + rh, rx, ry + rh, r); x.arcTo(rx, ry + rh, rx, ry, r); x.arcTo(rx, ry, rx + rw, ry, r); x.closePath();
+}
+// Draw the photo into a rounded rect with cover-crop around a focus point (fx, fy in 0..1) and zoom.
+function photoIn(rect, fx, fy, zoom, alpha = 1) {
+  const im = photo(); if (!im || alpha <= 0) return;
+  const [rx, ry, rw, rh, r] = rect;
+  const s = Math.max(rw / im.width, rh / im.height) * zoom, sw = rw / s, sh = rh / s;
+  const sx = clamp(fx * im.width - sw / 2, 0, im.width - sw), sy = clamp(fy * im.height - sh / 2, 0, im.height - sh);
+  x.save(); x.globalAlpha = alpha; rr(rx, ry, rw, rh, r); x.clip();
+  x.drawImage(im, sx, sy, sw, sh, rx, ry, rw, rh); x.restore();
+  return { sx, sy, s };                   // mapping image px -> canvas: cx = rx + (ix - sx) * s
+}
+// Masked type: the line rises out of a mask under its baseline; exits by dropping back in.
+function maskLine(str, tx, ty, sz, weight, col, tIn, tOut, t, align = 'left') {
+  const pin = easeOut((t - tIn) / .38), pout = tOut == null ? 0 : easeIO((t - tOut) / .32);
+  if (pin <= 0 || pout >= 1) return 0;
+  font(sz, weight); x.textBaseline = 'alphabetic'; x.textAlign = align;
+  const w = x.measureText(str).width, lx = align === 'center' ? tx - w / 2 : tx;
+  x.save(); x.beginPath(); x.rect(lx - 20, ty - sz * 1.05, w + 40, sz * 1.35); x.clip();
+  x.fillStyle = col; x.fillText(str, tx, ty + sz * 1.1 * (1 - pin) + sz * 1.1 * pout); x.restore();
+  x.textAlign = 'left';
+  return w;
+}
+function fitFont(str, maxW, start, weight) { let s = start; font(s, weight); while (x.measureText(str).width > maxW && s > 20) { s -= 2; font(s, weight); } return s; }
+function shade(y0, y1, a, rgb) {          // legibility gradient over photos (dark, or cream for light art)
+  rgb = rgb || (CFG.textOn === 'light' ? '246,242,236' : '0,0,0');
+  const g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, `rgba(${rgb},0)`); g.addColorStop(.45, `rgba(${rgb},${a * .8})`); g.addColorStop(1, `rgba(${rgb},${a})`);
+  x.fillStyle = g; x.fillRect(0, y0, W, y1 - y0);
+}
+function grain(t) {                       // deterministic film grain (very light)
+  const seed = Math.floor(t * 30) * 9301;
+  x.save(); x.globalAlpha = .035;
+  for (let i = 0; i < 900; i++) {
+    const r = Math.sin(seed + i * 78.233) * 43758.5453, gx = (r - Math.floor(r)) * W;
+    const r2 = Math.sin(seed + i * 12.989) * 24634.6345, gy = (r2 - Math.floor(r2)) * H;
+    x.fillStyle = i % 2 ? '#fff' : '#000'; x.fillRect(gx, gy, 2, 2);
+  }
+  x.restore();
+}
+function vignette() {
+  const g = x.createRadialGradient(W / 2, H / 2, H * .35, W / 2, H / 2, H * .75);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.28)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+}
+function chip(str, cx, cy, bg, fg, sz, a, align = 'center') {
+  if (a <= 0) return;
+  font(sz, 700); const w = x.measureText(str).width + sz * 1.3, h = sz * 1.9;
+  const lx = clamp(align === 'center' ? cx - w / 2 : cx, 30, W - 30 - w);
+  x.save(); x.globalAlpha *= a; x.fillStyle = bg; rr(lx, cy - h / 2, w, h, h / 2); x.fill();
+  x.fillStyle = fg; x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillText(str, lx + w / 2, cy + 2); x.restore();
+}
+function countUp(v, dec) { return v.toFixed(dec); }
+// Outline path of a product shape, drawn up to `frac` of its perimeter (tape being laid down).
+function shapePath(cx, cy, rw, rh, shape, frac = 1) {
+  x.beginPath();
+  if (shape === 'circle') { x.ellipse(cx, cy, rw, rh, -Math.PI / 2, 0, Math.PI * 2 * frac); return; }
+  let pts;
+  if (shape === 'octagon') { const k = .41; pts = [[-k, -1], [k, -1], [1, -k], [1, k], [k, 1], [-k, 1], [-1, k], [-1, -k]]; }
+  else pts = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+  pts = pts.map(([u, v]) => [cx + u * rw, cy + v * rh]); pts.push(pts[0]);
+  const seg = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(d); tot += d; }
+  let left = tot * clamp(frac); x.moveTo(...pts[0]);
+  for (let i = 1; i < pts.length && left > 0; i++) {
+    const p = Math.min(1, left / seg[i - 1]); x.lineTo(lerp(pts[i - 1][0], pts[i][0], p), lerp(pts[i - 1][1], pts[i][1], p)); left -= seg[i - 1];
+  }
+}
+function snowflake(cx, cy, r, col, lw = 8) {
+  x.save(); x.strokeStyle = col; x.lineWidth = lw; x.lineCap = 'round';
+  for (let k = 0; k < 6; k++) {
+    const a = k * Math.PI / 3, ex = cx + Math.cos(a) * r, ey = cy + Math.sin(a) * r;
+    x.beginPath(); x.moveTo(cx, cy); x.lineTo(ex, ey); x.stroke();
+    const mx = cx + Math.cos(a) * r * .6, my = cy + Math.sin(a) * r * .6;
+    [-.6, .6].forEach(o => { x.beginPath(); x.moveTo(mx, my); x.lineTo(mx + Math.cos(a + o) * r * .3, my + Math.sin(a + o) * r * .3); x.stroke(); });
+  }
+  x.restore();
+}
+function sunIcon(cx, cy, r, t, col = '#E9B53C', grow = 1) {
+  x.fillStyle = col; x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fill();
+  x.strokeStyle = col; x.lineWidth = r * .12; x.lineCap = 'round';
+  for (let k = 0; k < 10; k++) { const an = k * Math.PI / 5 + t * .25; x.beginPath(); x.moveTo(cx + Math.cos(an) * r * 1.1, cy + Math.sin(an) * r * 1.1); x.lineTo(cx + Math.cos(an) * r * (1.1 + .4 * grow), cy + Math.sin(an) * r * (1.1 + .4 * grow)); x.stroke(); }
+}
+function sprout(sx, sy, g, h = 120) {
+  if (g <= 0) return;
+  x.strokeStyle = '#5F8F4E'; x.lineWidth = 10; x.lineCap = 'round'; x.beginPath(); x.moveTo(sx, sy); x.lineTo(sx, sy - h * g); x.stroke();
+  x.fillStyle = '#6FA35A';
+  x.beginPath(); x.ellipse(sx - 22 * g, sy - (h + 6) * g, 28 * g, 12 * g, .7, 0, 7); x.fill();
+  x.beginPath(); x.ellipse(sx + 22 * g, sy - (h + 6) * g, 28 * g, 12 * g, -.7, 0, 7); x.fill();
+}
+
+// ---------- shared hook + CTA + loop ----------
+// Frame 0 and the last frame are identical: full-bleed product, no text.
+const FULL = [0, 0, W, H, 0];
+function hookWords(t, lines) {            // lines: [{text, beat, accent, size}]
+  let y = CFG.hookY || 1180;
+  lines.forEach((l, i) => {
+    const sz = l.size || 118;
+    if (i) y += sz * .86;                 // baseline-to-baseline follows the bigger line
+    const light = CFG.textOn === 'light', P = CFG.palette;
+    const col = l.accent ? (light ? P.accent : P.accent2) : (light ? P.ink : '#FFFFFF');
+    maskLine(l.text, 90, y, sz, 900, col, B(l.beat) + .02, B(CFG.hookOut || 4), t);
+    y += sz * .22;
+  });
+}
+function cta(t, b0, b1) {
+  // a dark panel floods up from the bottom (shape transition), the domain lands on the downbeat
+  const P = CFG.palette;
+  const up = spring(t - B(b0), 11, .9) - spring(t - B(b1 - 1.2), 11, .9);
+  if (up <= .001) return;
+  const top = lerp(H, 1080, up);
+  x.fillStyle = P.dark; rr(0, top, W, H - top + 60, 48 * (1 - up) + 0); x.fill();
+  const tIn = B(b0 + 1), tOut = B(b1 - 1.5);
+  const sz = fitFont(CFG.domain, 900, 120, 900);
+  maskLine(CFG.domain, 540, 1330, sz, 900, '#FFFFFF', tIn, tOut, t, 'center');
+  font(sz, 900); const dw = x.measureText(CFG.domain).width;
+  const ul = easeOut((t - tIn - .25) / .5) * (1 - easeIO((t - tOut) / .3));
+  x.fillStyle = P.accent2; x.fillRect(540 - dw / 2, 1360, dw * ul, 10);
+  maskLine(CFG.ctaLine, 540, 1170, 44, 700, P.accent2, B(b0 + .5), tOut, t, 'center');
+  maskLine(CFG.ctaNote, 540, 1460, 38, 400, 'rgba(255,255,255,.72)', B(b0 + 2), tOut, t, 'center');
+}
+
+// ================= template: FIT (furniture) =================
+function fit(t) {
+  const P = CFG.palette, bb = CFG.bbox;            // product box in image (normalized)
+  // photo states: full-bleed hook -> card (top) -> detail zoom -> full-bleed hero -> full-bleed (CTA under) -> frame 0
+  const CARD = [90, 300, 900, 720, 34];
+  const rect = rectTrack(t, [[0, FULL], [8, CARD], [16, FULL]], 10, .9);
+  const zoom = track(t, [[0, 1.16], [4, 1.0], [8, 1.0], [13, CFG.detail.zoom], [16, 1.08], [28, 1.16]], 7, .92);
+  const fx = track(t, [[0, CFG.focus[0]], [13, CFG.detail.fx], [16, CFG.focus[0]]], 7, .92);
+  const fy = track(t, [[0, CFG.focus[1]], [13, CFG.detail.fy], [16, CFG.focus[1]]], 7, .92);
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  const m = photoIn(rect, fx, fy, zoom);
+  const toC = (ix, iy) => m ? [rect[0] + (ix * photo().width - m.sx) * m.s, rect[1] + (iy * photo().height - m.sy) * m.s] : [0, 0];
+
+  // bar 1: the buyer's question lands word by word (frame 0 shows only the product)
+  const sh = win(t, 0.2, 4.2, .4); if (sh > 0) { x.globalAlpha = sh; shade(950, H, .82); x.globalAlpha = 1; }
+  hookWords(t, CFG.hook);
+
+  // bar 2: a measuring line snaps across the real product; the listed number counts up
+  const mIn = B(4.2), mOut = B(7.6);
+  if (t > mIn && t < mOut + .4 && m) {
+    const [ax, ay] = toC(bb[0], (bb[1] + bb[3]) / 2), [bx] = toC(bb[2], (bb[1] + bb[3]) / 2);
+    const p = easeOut((t - mIn) / .55), out = 1 - easeIO((t - mOut) / .3);
+    const lp = CFG.lightPhoto;            // light studio photo: dark line and dark chip
+    x.save(); x.globalAlpha = out; x.strokeStyle = lp ? P.ink : '#FFFFFF'; x.lineWidth = 7; x.lineCap = 'round';
+    x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 12;
+    x.beginPath(); x.moveTo(ax, ay); x.lineTo(lerp(ax, bx, p), ay); x.stroke();
+    [[ax, 1], [lerp(ax, bx, p), p]].forEach(([ex, k]) => { x.beginPath(); x.moveTo(ex, ay - 34 * k); x.lineTo(ex, ay + 34 * k); x.stroke(); });
+    x.restore();
+    const M = CFG.measure;                 // either a single listed number (counts up) or the listed size as text
+    const label = M.text || countUp(M.value * easeOut((t - mIn - .1) / (B(2) - .1)), M.decimals) + ' ' + M.unit;
+    chip(label, (ax + bx) / 2, ay - 90, lp ? P.ink : '#FFFFFF', lp ? '#FFFFFF' : P.ink, M.text ? 54 : 64, out * clamp((t - mIn) / .25));
+    if (out > 0) { x.globalAlpha = out * clamp((t - mIn) / .3); shade(1300, H, .55); x.globalAlpha = 1; maskLine(CFG.measure.caption, 540, 1500, fitFont(CFG.measure.caption, 940, 52, 700), 700, '#FFFFFF', mIn + B(1.5), mOut, t, 'center'); }
+  }
+
+  // bar 3: the product's outline lifts off the photo and lands in a plain room drawing.
+  //   tape      - laid on the wall at its listed size
+  //   door      - carried to a doorway (the delivery route)
+  //   drawer    - becomes the nightstand; its drawer slides out into the clearance it needs
+  //   obstacles - lands on a light switch first, then springs to a clear spot
+  if (t > B(8) && t < B(16.5)) {
+    const S = CFG.scene || { type: 'tape' }, type = S.type;
+    const P2 = easeOut((t - B(8.6)) / .5), lift = spring(t - B(9.4), 9, .9), fade = 1 - easeIO((t - B(12)) / .35);
+    const [ax, ay] = toC(bb[0], bb[1]), [bx, by] = toC(bb[2], bb[3]);
+    const wall = [90, 1060, 900, 470], pa = clamp((t - B(8.4)) / .3) * fade;
+    x.globalAlpha = pa; x.fillStyle = P.wall; rr(...wall, 30); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.08)'; x.fillRect(90, 1470, 900, 60);               // floor strip
+    let tx = 540, ty = 1295, trw = 170, trh = 170;
+    const aspect = (by - ay) / Math.max(1, bx - ax);
+    if (type === 'door') {                  // doorway opening on the right, outline carried towards it
+      x.fillStyle = 'rgba(0,0,0,.16)'; rr(640, 1130, 250, 340, 8); x.fill();
+      x.strokeStyle = P.ink; x.lineWidth = 8; x.strokeRect(640, 1130, 250, 340);
+      x.fillStyle = P.ink; x.beginPath(); x.arc(860, 1310, 9, 0, 7); x.fill();
+      trw = 95; trh = trw * aspect; tx = lerp(330, 765, spring(t - B(10.4), 8, .9)); ty = 1470 - trh;
+    } else if (type === 'drawer') {         // nightstand outline; drawer slides out into dashed clearance
+      trw = 150; trh = 150 * aspect; tx = 400; ty = 1470 - trh;
+      const so = spring(t - B(10.4), 10, .85), dy = ty - trh + trh * .18, dh = trh * .26;
+      x.save(); x.setLineDash([16, 12]); x.strokeStyle = P.accent; x.lineWidth = 5;
+      x.globalAlpha = pa * clamp((t - B(10.2)) / .3); x.strokeRect(tx + trw, dy - 10, 290, dh + 20); x.restore();
+      x.globalAlpha = pa; x.fillStyle = P.ink; rr(tx + trw - 10, dy, 10 + 200 * so, dh, 6);
+      if (so > .01) x.fill();
+    } else if (type === 'height') {        // bed + mattress on the left; outline lands beside it; band = level .. 2–4 in higher
+      x.fillStyle = '#B9A58C'; rr(130, 1380, 400, 90, 8); x.fill();                    // bed frame
+      x.fillStyle = '#FFFFFF'; x.strokeStyle = P.ink; x.lineWidth = 4; rr(130, 1300, 400, 80, 14); x.fill(); x.stroke();   // mattress
+      const band = easeOut((t - B(10.6)) / .4);
+      x.save(); x.globalAlpha = pa * band * .3; x.fillStyle = P.accent; x.fillRect(130, 1250, 820 * band, 50); x.restore();
+      x.save(); x.globalAlpha = pa * band; x.setLineDash([14, 10]); x.strokeStyle = P.accent; x.lineWidth = 5; x.beginPath(); x.moveTo(130, 1300); x.lineTo(130 + 820 * band, 1300); x.stroke(); x.restore();
+      trw = 90; trh = 100; tx = 700; ty = 1470 - trh - 15 + 15 * spring(t - B(10.2), 10, .85);
+    } else if (type === 'walk') {          // outline lands mid-room; a walking loop is traced around it
+      trw = 130; trh = CFG.shape === 'circle' ? 130 : 130 * Math.min(1.2, aspect); tx = 540; ty = 1290;   // a round top's footprint is a circle
+      const lp = easeOut((t - B(10.4)) / .9);
+      x.save(); x.globalAlpha = pa; x.setLineDash([4, 22]); x.lineCap = 'round'; x.strokeStyle = P.accent; x.lineWidth = 12;
+      x.beginPath(); x.ellipse(540, 1290, 330, 190, 0, Math.PI / 2, Math.PI / 2 + Math.PI * 2 * lp); if (lp > 0) x.stroke(); x.restore();
+      if (lp > 0 && lp < 1) { const an = Math.PI / 2 + Math.PI * 2 * lp; x.fillStyle = P.ink; x.beginPath(); x.arc(540 + 330 * Math.cos(an), 1290 + 190 * Math.sin(an), 16, 0, 7); x.fill(); }
+    } else if (type === 'obstacles') {      // light switch + outlet on the wall
+      x.fillStyle = '#FFFFFF'; x.strokeStyle = P.ink; x.lineWidth = 5;
+      rr(230, 1190, 70, 110, 10); x.fill(); x.stroke(); x.fillStyle = P.ink; rr(255, 1222, 20, 46, 6); x.fill();
+      x.fillStyle = '#FFFFFF'; rr(830, 1380, 70, 70, 10); x.fill(); x.stroke();
+      x.fillStyle = P.ink; [[853, 1405], [877, 1405]].forEach(([sx, sy]) => x.fillRect(sx - 3, sy - 8, 6, 16)); x.beginPath(); x.arc(865, 1428, 5, 0, 7); x.fill();
+      trw = 150; trh = 150; tx = 330 + 260 * spring(t - B(10.6), 9, .88); ty = 1290;
+      const bad = win(t, 9.8, 10.7, .15);
+      if (bad > 0) { x.globalAlpha = pa * bad; x.strokeStyle = '#D9534F'; x.lineWidth = 12; x.lineCap = 'round'; x.beginPath(); x.moveTo(225, 1185); x.lineTo(305, 1305); x.moveTo(305, 1185); x.lineTo(225, 1305); x.stroke(); }
+    }
+    x.globalAlpha = 1;
+    const cx = lerp((ax + bx) / 2, tx, lift), cy = lerp((ay + by) / 2, ty, lift);
+    const rw = lerp((bx - ax) / 2, trw, lift), rh = lerp((by - ay) / 2, trh, lift);
+    x.save(); x.globalAlpha = fade; x.setLineDash([30, 16]); x.lineDashOffset = -t * 40; x.lineWidth = 10; x.strokeStyle = P.tape;
+    shapePath(cx, cy, rw, rh, CFG.shape, P2); x.stroke(); x.restore();
+    if (S.label) chip(S.label, cx, cy, P.ink, '#FFFFFF', 40, clamp((t - B(10)) / .25) * fade);
+    maskLine(S.caption, 540, 1640, fitFont(S.caption, 940, 60, 900), 900, '#FFFFFF', B(10.5), B(12), t, 'center');
+  }
+
+  // bar 4: two checks; the second one pushes the camera into the product detail
+  if (t > B(12) && t < B(16.5)) {
+    CFG.checks.forEach((c, i) => {
+      const tb = B(12.3 + i * 2), y = 1210 + i * 190, out = B(16);
+      const pop = spring(t - tb, 16, .7) * (1 - easeIO((t - out) / .3));
+      if (pop <= 0) return;
+      x.save(); x.translate(150, y - 22); x.scale(pop, pop);
+      x.fillStyle = P.accent; x.beginPath(); x.arc(0, 0, 42, 0, 7); x.fill();
+      x.strokeStyle = '#fff'; x.lineWidth = 9; x.lineCap = 'round'; x.lineJoin = 'round';
+      const k = easeOut((t - tb - .15) / .3);
+      x.beginPath(); x.moveTo(-17, 0); x.lineTo(-17 + 11 * Math.min(1, k * 2), 12 * Math.min(1, k * 2));
+      if (k > .5) x.lineTo(-6 + 26 * (k - .5) * 2, 12 - 32 * (k - .5) * 2); x.stroke(); x.restore();
+      maskLine(c, 230, y, fitFont(c, 780, 62, 900), 900, '#FFFFFF', tb + .08, out, t);
+    });
+  }
+
+  // bar 5: hero — the photo floods back; product name + listed dimensions
+  const hs = win(t, 16.6, 20.2, .4); if (hs > 0) { x.globalAlpha = hs; shade(900, H, .7); x.globalAlpha = 1; }
+  const nsz = fitFont(CFG.product, 900, 92, 900);
+  maskLine(CFG.product, 90, 1430, nsz, 900, '#FFFFFF', B(16.8), B(20), t);
+  chip('Listed: ' + CFG.dims, 90, 1530, 'rgba(255,255,255,.92)', P.ink, 40, win(t, 17.6, 20, .3), 'left');
+
+  // bars 6–7: CTA panel floods up, then contracts back to frame 0
+  cta(t, 20, 30.5);
+  ev(0, 'start');
+  CFG.hook.forEach(h => ev(h.beat, 'tick'));
+  ev(4.2, 'swish'); ev(6, 'click'); ev(8, 'whoosh'); ev(9.4, 'whoosh'); ev(10, 'tick');
+  const st = (CFG.scene || {}).type;
+  if (st === 'door') ev(10.4, 'swish'); if (st === 'height') { ev(10.2, 'drop'); ev(10.6, 'click'); } if (st === 'walk') ev(10.4, 'swish'); if (st === 'drawer') ev(10.4, 'swish'); if (st === 'obstacles') { ev(9.8, 'drop'); ev(10.6, 'swish'); }
+  ev(12.3, 'pop'); ev(14.3, 'pop'); ev(13, 'whoosh'); ev(16, 'impact'); ev(20, 'whoosh'); ev(21, 'impact'); ev(29.3, 'whoosh');
+}
+
+// ================= template: GROW (seeds) =================
+// Bars 2–4 are three fact scenes from CFG.scenes (beats 4–8, 8–12, 12–15.6). Each scene:
+//   {type, title, sub, note?, ...type fields}. Every number on screen comes from the scene config,
+//   which is copied from checked copy (社媒文案) and its extension source.
+// Visual types: depth, days, sun, tray, seasons, frost, calendar, weeks, transplant, packet,
+//   surface (wrong/right sowing depth for light-needing seed), years, rain, heat, water, recap.
+const SCN = {
+  depth(t, s, py, b0) {                     // macro soil cross-section (not to scale): seed drops, cover sprinkles on
+    const soilTop = py + 360;
+    const sg = x.createLinearGradient(0, soilTop, 0, soilTop + 230); sg.addColorStop(0, '#8A6A50'); sg.addColorStop(1, '#5E4433');
+    x.fillStyle = sg; rr(100, soilTop, 880, 230, 30); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 70; i++) { x.beginPath(); x.arc(130 + (i * 263) % 820, soilTop + 30 + (i * 71) % 180, 4 + i % 4, 0, 7); x.fill(); }
+    if (s.cover) for (let i = 0; i < 60; i++) { const k = spring(t - B(b0 + 2.6) - i * .01, 18, .7); if (k > 0) { x.fillStyle = '#F4F1EA'; x.beginPath(); x.arc(130 + (i * 197) % 820, soilTop + 12 + ((i * 37) % 22) - 60 * (1 - k), 9, 0, 7); x.fill(); } }
+    const drop = spring(t - B(b0 + 1), 13, .8), sy = lerp(soilTop - 300, soilTop + 62, drop);
+    x.fillStyle = '#2B1D14'; x.beginPath(); x.ellipse(540, sy, 30, 19, .25, 0, 7); x.fill();
+    const lk = easeOut((t - B(b0 + 1.6)) / .4);
+    x.strokeStyle = '#FFFFFF'; x.lineWidth = 7; x.lineCap = 'round'; x.beginPath(); x.moveTo(680, soilTop); x.lineTo(680, soilTop + 62 * lk); x.stroke();
+    x.beginPath(); x.moveTo(658, soilTop); x.lineTo(702, soilTop); x.moveTo(658, soilTop + 62 * lk); x.lineTo(702, soilTop + 62 * lk); x.stroke();
+    chip(s.chip, 790, soilTop + 31, '#FFFFFF', CFG.palette.ink, 40, lk);
+    return [[b0 + 1, 'drop'], [b0 + 1.6, 'tick']].concat(s.cover ? [[b0 + 2.6, 'sprinkle']] : []);
+  },
+  days(t, s, py, b0) {                      // day line; the germination window lights up; sprouts arrive unevenly (illustration)
+    const P = CFG.palette, ty = py + 560, x0 = 150, x1 = 930, max = s.max, dayX = d => lerp(x0, x1, d / max);
+    const dr = easeOut((t - B(b0 + .3)) / .9);
+    x.strokeStyle = P.track; x.lineWidth = 22; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, ty); x.lineTo(lerp(x0, x1, dr), ty); x.stroke();
+    const hl = easeOut((t - B(b0 + 1.5)) / .5);
+    x.strokeStyle = P.accent; x.beginPath(); x.moveTo(dayX(s.range[0]), ty); x.lineTo(lerp(dayX(s.range[0]), dayX(s.range[1]), hl), ty); x.stroke();
+    [0, s.range[0], s.range[1]].forEach((d, i) => {
+      const a = clamp((t - B(b0 + .4 + i * .5)) / .25); if (a <= 0) return;
+      x.save(); x.globalAlpha *= a; font(40, 700); x.fillStyle = P.ink; x.textAlign = 'center'; x.textBaseline = 'top'; x.fillText('Day ' + d, dayX(d), ty + 34); x.restore();
+    });
+    const span = s.range[1] - s.range[0];
+    [.17, .52, .06, .83, .36, .94].forEach((f, i) => sprout(dayX(s.range[0] + f * span), ty - 18, spring(t - B(b0 + 2 + i * .33), 12, .75)));
+    return [[b0 + .3, 'swish'], [b0 + 1.5, 'click']].concat([0, 1, 2, 3, 4, 5].map(i => [b0 + 2 + i * .33, 'pop']));
+  },
+  sun(t, s, py, b0) {
+    const P = CFG.palette, cy = py + 500, sn = spring(t - B(b0 + .2), 10, .85);
+    sunIcon(300, cy + 40 - 100 * sn, 80, t, '#E9B53C', sn);
+    const pot = clamp((t - B(b0 + 1)) / .3);
+    x.save(); x.globalAlpha *= pot; x.fillStyle = P.soil; rr(580, cy - 130, 360, 230, 26); x.fill();
+    x.fillStyle = '#7FB7DA';
+    for (let k = 0; k < 8; k++) { const ph = ((t - B(b0 + 1.2)) * 1.4 + k / 8) % 1; if (t > B(b0 + 1.2)) { x.beginPath(); x.arc(610 + k * 42, cy - 120 + ph * 220, 12, 0, 7); x.fill(); } }
+    x.restore();
+    return [[b0 + .2, 'swish'], [b0 + 1.2, 'drip']];
+  },
+  tray(t, s, py, b0) {                      // seed tray; a day counter runs and cells sprout at different days (illustration)
+    const P = CFG.palette, cols = 4, rows = 3, cw = 170, ch = 74, ox = 540 - cols * cw / 2, oy = py + 400;
+    const t0 = B(b0 + .3), t1 = B(b0 + 3.2), day = s.max * clamp((t - t0) / (t1 - t0));
+    x.fillStyle = '#3B3A36'; rr(ox - 20, oy - 20, cols * cw + 40, rows * ch + 40, 18); x.fill();
+    for (let r = 0; r < rows; r++) for (let q = 0; q < cols; q++) { x.fillStyle = '#6E5440'; rr(ox + q * cw + 8, oy + r * ch + 8, cw - 16, ch - 16, 10); x.fill(); }
+    const when = s.sproutDays;            // one entry per cell, null = still waiting at the end of the counter
+    when.forEach((d, i) => {
+      if (d == null) return;
+      const td = t0 + (t1 - t0) * d / s.max, g = spring(t - td, 12, .75) * .5;
+      const q = i % cols, r = Math.floor(i / cols);
+      sprout(ox + q * cw + cw / 2, oy + r * ch + ch / 2 + 8, g, 110);
+    });
+    chip('Day ' + Math.floor(day), 880, py + 330, P.accent, '#FFFFFF', 40, clamp((t - t0) / .2));
+    const ev = [[b0 + .3, 'click']];
+    when.forEach(d => { if (d != null) ev.push([b0 + .3 + (3.2 - .3) * d / s.max, 'pop']); });
+    return ev;
+  },
+  seasons(t, s, py, b0) {                   // four season tiles; the right ones light up
+    const P = CFG.palette, names = ['Spring', 'Summer', 'Fall', 'Winter'], tw = 200, gap = 20, ox = 540 - (4 * tw + 3 * gap) / 2, oy = py + 360;
+    names.forEach((n, i) => {
+      const a = spring(t - B(b0 + .3 + i * .25), 14, .75); if (a <= 0) return;
+      const on = s.on.includes(n), lit = on ? easeOut((t - B(b0 + 1.6)) / .3) : 0, dim = on ? 1 : 1 - .55 * easeOut((t - B(b0 + 1.6)) / .3);
+      const cx = ox + i * (tw + gap) + tw / 2, cy = oy + 110;
+      x.save(); x.globalAlpha *= dim; x.translate(cx, cy); x.scale(a * (1 + .06 * lit), a * (1 + .06 * lit));
+      x.fillStyle = lit > .5 ? P.accent : '#FFFFFF'; rr(-tw / 2, -110, tw, 220, 24); x.fill();
+      x.strokeStyle = P.track; x.lineWidth = 4; rr(-tw / 2, -110, tw, 220, 24); x.stroke();
+      const ic = lit > .5 ? '#FFFFFF' : P.ink2;
+      if (n === 'Spring') sprout(0, 10, 1, 60);
+      if (n === 'Summer') sunIcon(0, -20, 34, t, ic);
+      if (n === 'Fall') { x.fillStyle = lit > .5 ? '#FFFFFF' : '#C7792F'; x.beginPath(); x.ellipse(0, -20, 26, 42, .6, 0, 7); x.fill(); }
+      if (n === 'Winter') snowflake(0, -20, 40, ic, 6);
+      font(38, 700); x.fillStyle = lit > .5 ? '#FFFFFF' : P.ink; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillText(n, 0, 80);
+      x.restore();
+    });
+    return [0, 1, 2, 3].map(i => [b0 + .3 + i * .25, 'tick']).concat([[b0 + 1.6, 'impact']]);
+  },
+  frost(t, s, py, b0) {                     // frost date (snowflake) and heat (sun) both shape the window
+    const P = CFG.palette, cy = py + 470;
+    const a1 = spring(t - B(b0 + .3), 12, .8), a2 = spring(t - B(b0 + 1.2), 12, .8);
+    x.save(); x.translate(300, cy); x.scale(a1, a1); snowflake(0, 0, 90, '#5A8FC7', 12); x.restore();
+    x.save(); x.translate(780, cy); x.scale(a2, a2); sunIcon(0, 0, 74, t, '#E9B53C'); x.restore();
+    font(40, 700); x.textAlign = 'center'; x.textBaseline = 'top'; x.fillStyle = P.ink;
+    x.globalAlpha *= clamp((t - B(b0 + .6)) / .25); x.fillText(s.left, 300, cy + 130);
+    x.globalAlpha = clamp((t - B(b0 + 1.5)) / .25) * x.globalAlpha; x.fillText(s.right, 780, cy + 130);
+    x.textAlign = 'left';
+    return [[b0 + .3, 'pop'], [b0 + 1.2, 'pop']];
+  },
+  calendar(t, s, py, b0) {                  // one calendar, many different local dates
+    const P = CFG.palette, cx = 540, top = py + 330, cw = 640, chh = 300;
+    const a = spring(t - B(b0 + .2), 11, .85);
+    x.save(); x.translate(cx, top + chh / 2); x.scale(a, a); x.translate(-cx, -(top + chh / 2));
+    x.fillStyle = '#FFFFFF'; rr(cx - cw / 2, top, cw, chh, 22); x.fill();
+    x.fillStyle = P.accent; rr(cx - cw / 2, top, cw, 56, 22); x.fill(); x.fillRect(cx - cw / 2, top + 30, cw, 26);
+    for (let r = 0; r < 4; r++) for (let q = 0; q < 7; q++) { x.fillStyle = P.track; x.beginPath(); x.arc(cx - cw / 2 + 60 + q * 87, top + 100 + r * 52, 9, 0, 7); x.fill(); }
+    [[1, 0], [4, 1], [2, 3], [6, 2], [0, 2]].forEach(([q, r], i) => {
+      const k = spring(t - B(b0 + 1 + i * .35), 14, .7); if (k <= 0) return;
+      x.strokeStyle = ['#5A8FC7', '#E07A5F', P.accent, '#5F8F4E', '#C7792F'][i]; x.lineWidth = 7;
+      x.beginPath(); x.arc(cx - cw / 2 + 60 + q * 87, top + 100 + r * 52, 24 * k, 0, 7); x.stroke();
+    });
+    x.restore();
+    return [[b0 + .2, 'swish']].concat([0, 1, 2, 3, 4].map(i => [b0 + 1 + i * .35, 'tick']));
+  },
+  weeks(t, s, py, b0) {                     // weeks counted back from the last frost; the sowing window lights up
+    const P = CFG.palette, ty = py + 560, x0 = 140, x1 = 860, wx = w => lerp(x0, x1, (w + s.max) / s.max);
+    const dr = easeOut((t - B(b0 + .3)) / .8);
+    x.strokeStyle = P.track; x.lineWidth = 22; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, ty); x.lineTo(lerp(x0, x1, dr), ty); x.stroke();
+    for (let w = -s.max; w <= 0; w += 2) { x.fillStyle = P.ink2; x.globalAlpha *= 1; x.fillRect(wx(w) - 2, ty + 18, 4, 16 * dr); }
+    const fz = spring(t - B(b0 + .8), 12, .8);
+    x.save(); x.translate(wx(0) + 6, ty - 90); x.scale(fz, fz); if (s.endIcon === 'sprout') sprout(0, 40, .6, 110); else snowflake(0, 0, 44, '#5A8FC7', 8); x.restore();
+    font(36, 700); x.fillStyle = P.ink; x.textAlign = 'center'; x.textBaseline = 'top';
+    x.save(); x.globalAlpha *= clamp((t - B(b0 + 1)) / .25); x.fillText(s.endLabel, wx(0), ty + 44); x.restore();
+    const hl = easeOut((t - B(b0 + 1.4)) / .5);
+    x.strokeStyle = P.accent; x.beginPath(); x.moveTo(wx(-s.range[1]), ty); x.lineTo(lerp(wx(-s.range[1]), wx(-s.range[0]), hl), ty); x.stroke();
+    x.save(); x.globalAlpha *= clamp((t - B(b0 + 1.6)) / .25); x.fillStyle = P.accent; x.fillText(s.rangeLabel, (wx(-s.range[1]) + wx(-s.range[0])) / 2, ty + 44); x.restore();
+    const tr = spring(t - B(b0 + 2.2), 13, .8), mid = (wx(-s.range[1]) + wx(-s.range[0])) / 2;
+    if (tr > 0) { x.fillStyle = '#3B3A36'; rr(mid - 90, lerp(ty - 400, ty - 120, tr), 180, 70, 12); x.fill(); for (let k = 0; k < 3; k++) sprout(mid - 55 + k * 55, lerp(ty - 400, ty - 120, tr) + 10, tr * .45, 110); }
+    x.textAlign = 'left';
+    return [[b0 + .3, 'swish'], [b0 + .8, 'pop'], [b0 + 1.4, 'click'], [b0 + 2.2, 'drop']];
+  },
+  transplant(t, s, py, b0) {                // indoor tray -> arrow -> garden bed
+    const P = CFG.palette, cy = py + 500;
+    const a = spring(t - B(b0 + .2), 12, .8);
+    x.save(); x.globalAlpha *= clamp(a); x.fillStyle = '#3B3A36'; rr(130, cy - 20, 260, 80, 14); x.fill();
+    for (let k = 0; k < 4; k++) sprout(170 + k * 60, cy - 10, a * .5, 110); x.restore();
+    const ar = easeOut((t - B(b0 + 1)) / .7);
+    x.strokeStyle = P.accent; x.lineWidth = 12; x.lineCap = 'round';
+    x.beginPath(); for (let i = 0; i <= 30 * ar; i++) { const u = i / 30, px = lerp(420, 640, u), pyy = cy - 40 - Math.sin(u * Math.PI) * 120; i ? x.lineTo(px, pyy) : x.moveTo(px, pyy); } x.stroke();
+    if (ar > .95) { x.fillStyle = P.accent; x.beginPath(); x.moveTo(660, cy - 40); x.lineTo(625, cy - 70); x.lineTo(628, cy - 25); x.fill(); }
+    if (s.arrowLabel) chip(s.arrowLabel, 530, cy - 200, P.accent, '#FFFFFF', 38, clamp((t - B(b0 + 1.4)) / .25));
+    const bed = clamp((t - B(b0 + 1.8)) / .3);
+    x.save(); x.globalAlpha *= bed; x.fillStyle = P.soil; rr(680, cy, 280, 70, 14); x.fill();
+    for (let k = 0; k < 3; k++) sprout(730 + k * 90, cy + 10, spring(t - B(b0 + 2.1 + k * .2), 12, .75) * .75, 120); x.restore();
+    return [[b0 + .2, 'pop'], [b0 + 1, 'whoosh'], [b0 + 1.8, 'drop'], [b0 + 2.1, 'pop'], [b0 + 2.3, 'pop'], [b0 + 2.5, 'pop']];
+  },
+  packet(t, s, py, b0) {                    // generic seed packet: read the back
+    const P = CFG.palette, cx = 540, cy = py + 465;
+    const a = spring(t - B(b0 + .2), 10, .8), tilt = (1 - a) * .3 + Math.sin(t * 2) * .01;
+    x.save(); x.translate(cx, cy); x.rotate(tilt); x.scale(a * .82, a * .82);
+    x.fillStyle = '#FFFFFF'; rr(-170, -200, 340, 400, 20); x.fill(); x.strokeStyle = P.track; x.lineWidth = 5; rr(-170, -200, 340, 400, 20); x.stroke();
+    x.fillStyle = P.accent2; rr(-140, -170, 280, 170, 14); x.fill();
+    for (let k = 0; k < 6; k++) { x.fillStyle = P.accent; x.beginPath(); x.arc(Math.cos(k) * 36, -85 + Math.sin(k) * 36, 26, 0, 7); x.fill(); }
+    x.fillStyle = '#E9B53C'; x.beginPath(); x.arc(0, -85, 18, 0, 7); x.fill();
+    [0, 1, 2, 3].forEach(k => { const w = easeOut((t - B(b0 + 1 + k * .2)) / .3); x.fillStyle = P.track; rr(-140, 30 + k * 40, 280 * w * (k === 3 ? .6 : 1), 16, 8); x.fill(); });
+    x.restore();
+    return [[b0 + .2, 'whoosh']].concat([0, 1, 2, 3].map(k => [b0 + 1 + k * .2, 'tick']));
+  },
+  surface(t, s, py, b0) {                   // macro soil section: wrong = seed buried (X); right = seed on the surface in the light
+    const P = CFG.palette, soilTop = py + 470, right = s.mode !== 'wrong';
+    const sg = x.createLinearGradient(0, soilTop, 0, soilTop + 200); sg.addColorStop(0, '#8A6A50'); sg.addColorStop(1, '#5E4433');
+    x.fillStyle = sg; rr(100, soilTop, 880, 140, 30); x.fill();
+    x.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 60; i++) { x.beginPath(); x.arc(130 + (i * 263) % 820, soilTop + 25 + (i * 71) % 100, 4 + i % 4, 0, 7); x.fill(); }
+    const drop = spring(t - B(b0 + 1), 13, .8), rest = right ? soilTop - 16 : soilTop + 70;
+    if (right) {                             // light rays from the top-left fall on the seed
+      const la = easeOut((t - B(b0 + 1.6)) / .4);
+      if (la > 0) { x.save(); x.globalAlpha *= la * .55; x.strokeStyle = '#E9B53C'; x.lineWidth = 10; x.lineCap = 'round';
+        [-.5, -.25, 0, .25, .5].forEach(o => { const ex = 540 + o * 160, ey = soilTop - 30; x.beginPath(); x.moveTo(ex - 120, ey - 120); x.lineTo(lerp(ex - 120, ex, la), lerp(ey - 120, ey, la)); x.stroke(); });
+        x.restore(); sunIcon(250, soilTop - 140, 30, t, '#E9B53C', la); }
+    }
+    x.fillStyle = '#2B1D14'; x.beginPath(); x.ellipse(540, lerp(soilTop - 190, rest, drop), 30, 19, .25, 0, 7); x.fill();
+    if (!right) {                            // soil closes over the buried seed, then a red cross
+      const cv = easeOut((t - B(b0 + 1.4)) / .3);
+      x.fillStyle = '#7A5A43'; x.globalAlpha *= 1; for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(470 + i * 18, soilTop + 40 - 60 * (1 - cv), 14, 0, 7); if (cv > 0) x.fill(); }
+      const bad = easeOut((t - B(b0 + 1.8)) / .25);
+      if (bad > 0) { x.save(); x.strokeStyle = '#D9534F'; x.lineWidth = 16; x.lineCap = 'round'; const r = 55 * bad;
+        x.beginPath(); x.moveTo(540 - r, soilTop + 70 - r); x.lineTo(540 + r, soilTop + 70 + r); x.moveTo(540 + r, soilTop + 70 - r); x.lineTo(540 - r, soilTop + 70 + r); x.stroke(); x.restore(); }
+      if (s.chip) chip(s.chip, 790, soilTop + 70, '#FFFFFF', P.ink, 40, bad);
+      return [[b0 + 1, 'drop'], [b0 + 1.4, 'sprinkle'], [b0 + 1.8, 'impact']];
+    }
+    if (s.dust) for (let i = 0; i < 40; i++) { const k = spring(t - B(b0 + 2.6) - i * .01, 18, .7); if (k > 0) { x.fillStyle = 'rgba(236,230,214,.85)'; x.beginPath(); x.arc(380 + (i * 97) % 320, soilTop - 6 - 50 * (1 - k) + (i % 3) * 3, 6, 0, 7); x.fill(); } }
+    const ok = easeOut((t - B(b0 + 2.2)) / .25);
+    if (ok > 0) { x.save(); x.translate(820, soilTop - 90); x.scale(ok, ok); x.fillStyle = '#5F8F4E'; x.beginPath(); x.arc(0, 0, 46, 0, 7); x.fill();
+      x.strokeStyle = '#fff'; x.lineWidth = 10; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath(); x.moveTo(-19, 0); x.lineTo(-6, 13); x.lineTo(20, -15); x.stroke(); x.restore(); }
+    if (s.chip) chip(s.chip, 540, soilTop + 80, '#FFFFFF', P.ink, 40, clamp((t - B(b0 + 2.6)) / .25));
+    return [[b0 + 1, 'drop'], [b0 + 1.6, 'swish'], [b0 + 2.2, 'pop']].concat(s.dust ? [[b0 + 2.6, 'sprinkle']] : []);
+  },
+  years(t, s, py, b0) {                     // three year tiles; the plant grows a little each year; flowers only where s.bloom says "may"
+    const P = CFG.palette, tw = 260, gap = 30, ox = 540 - (3 * tw + 2 * gap) / 2, oy = py + 300, th = 250;
+    const hl = s.hl || [];
+    [1, 2, 3].forEach((yr, i) => {
+      const a = spring(t - B(b0 + .3 + i * .3), 14, .8); if (a <= 0) return;
+      const on = hl.includes(yr), lit = on ? easeOut((t - B(b0 + 1.6)) / .3) : 0;
+      const cx = ox + i * (tw + gap) + tw / 2;
+      x.save(); x.translate(cx, oy + th / 2); x.scale(a, a); x.translate(-cx, -(oy + th / 2));
+      x.fillStyle = '#FFFFFF'; rr(cx - tw / 2, oy, tw, th, 24); x.fill();
+      x.strokeStyle = lit > .5 ? P.accent : P.track; x.lineWidth = lit > .5 ? 8 : 4; rr(cx - tw / 2, oy, tw, th, 24); x.stroke();
+      x.fillStyle = P.soil; rr(cx - tw / 2 + 20, oy + th - 70, tw - 40, 36, 10); x.fill();
+      const g = spring(t - B(b0 + .8 + i * .3), 10, .85);
+      sprout(cx, oy + th - 66, g * [.4, .65, .85][i], 120);
+      if ((s.bloom || []).includes(yr)) { const f = spring(t - B(b0 + 2 + (yr - 2) * .3), 14, .7);
+        if (f > 0) { x.fillStyle = '#C9547E'; [[-14, 0], [14, 0], [0, -14], [0, 12]].forEach(([u, v]) => { x.beginPath(); x.arc(cx + u * f, oy + th - 66 - 110 + v * f, 12 * f, 0, 7); x.fill(); }); } }
+      font(40, 800); x.fillStyle = P.ink; x.textAlign = 'center'; x.textBaseline = 'top'; x.fillText('Year ' + yr, cx, oy + 18);
+      x.restore();
+    });
+    if (s.chip) chip(s.chip, s.chipX || 540, oy + th + 38, P.accent, '#FFFFFF', 38, clamp((t - B(b0 + 2.4)) / .25));
+    x.textAlign = 'left';
+    const ev = [0, 1, 2].map(i => [b0 + .3 + i * .3, 'tick']).concat([[b0 + 1.6, 'click']]);
+    (s.bloom || []).forEach(yr => ev.push([b0 + 2 + (yr - 2) * .3, 'pop']));
+    return ev;
+  },
+  rain(t, s, py, b0) {                      // rain-garden section: rain fills the dip; with s.drain it soaks away through the soil
+    const P = CFG.palette, gy = py + 450, l = 110, r = 970, d0 = 330, d1 = 750, depth = 90;
+    const sg = x.createLinearGradient(0, gy, 0, gy + 175); sg.addColorStop(0, '#8A6A50'); sg.addColorStop(1, '#5E4433');
+    x.fillStyle = sg; x.beginPath(); x.moveTo(l, gy); x.lineTo(d0, gy); x.quadraticCurveTo((d0 + d1) / 2, gy + depth * 2, d1, gy); x.lineTo(r, gy); x.lineTo(r, gy + 175); x.lineTo(l, gy + 175); x.closePath(); x.fill();
+    const rainA = win(t, b0 + .2, b0 + 2, .2);
+    if (rainA > 0) { x.save(); x.globalAlpha *= rainA; x.strokeStyle = '#7FB7DA'; x.lineWidth = 6; x.lineCap = 'round';
+      for (let k = 0; k < 18; k++) { const ph = ((t - B(b0)) * 1.8 + k * .137) % 1, rx = 200 + (k * 211) % 680, ry = py + 330 + ph * (gy - py - 330); x.beginPath(); x.moveTo(rx, ry); x.lineTo(rx - 8, ry + 26); x.stroke(); }
+      x.restore(); }
+    let lvl = easeOut((t - B(b0 + .4)) / (B(1.6)));
+    if (s.drain) lvl = 1 - easeIO((t - B(b0 + 1)) / B(1.6));
+    if (lvl > 0) { const wl = gy + depth - depth * lvl * .95, half = (d1 - d0) / 2 * Math.sqrt(clamp(lvl));
+      x.save(); x.beginPath(); x.moveTo(l, gy); x.lineTo(d0, gy); x.quadraticCurveTo((d0 + d1) / 2, gy + depth * 2, d1, gy); x.lineTo(r, gy); x.lineTo(r, gy - 400); x.lineTo(l, gy - 400); x.closePath(); x.clip();
+      x.fillStyle = 'rgba(90,143,199,.8)'; x.fillRect((d0 + d1) / 2 - half - 40, wl, 2 * half + 80, gy + depth * 2 - wl); x.restore(); }
+    if (s.drain) { x.fillStyle = '#7FB7DA'; for (let k = 0; k < 12; k++) { const ph = ((t - B(b0 + 1)) * .9 + k / 12) % 1; if (t > B(b0 + 1)) { x.beginPath(); x.arc(400 + (k * 83) % 280, gy + 80 + ph * 85, 8, 0, 7); x.fill(); } } }
+    [440, 540, 640].forEach((px, i) => sprout(px, gy + 60, spring(t - B(b0 + .3 + i * .15), 12, .8) * .8, 130));
+    if (s.chip) chip(s.chip, 540, gy + 140, '#FFFFFF', P.ink, 38, clamp((t - B(b0 + 2.4)) / .25));
+    return [[b0 + .2, 'swish'], [b0 + .6, 'drip'], [b0 + 1.2, 'drip']].concat([0, 1, 2].map(i => [b0 + .3 + i * .15, 'pop']));
+  },
+  heat(t, s, py, b0) {                      // season temperature curve: the hottest stretch is marked; the head sits outside it
+    const P = CFG.palette, x0 = 140, x1 = 940, base = py + 590, top = py + 370, f = u => base - (base - top) * Math.sin(Math.PI * u) ** 2;
+    const dr = easeOut((t - B(b0 + .3)) / .9);
+    const hot = easeOut((t - B(b0 + 1.3)) / .4);
+    if (hot > 0) { x.save(); x.globalAlpha *= hot * .35; x.fillStyle = '#E07A5F'; rr(lerp(x0, x1, .34), top - 30, (x1 - x0) * .32, base - top + 30, 18); x.fill(); x.restore();
+      x.save(); x.globalAlpha *= hot; font(36, 800); x.fillStyle = '#C0502F'; x.textAlign = 'center'; x.textBaseline = 'bottom'; x.fillText(s.hotLabel || 'Hottest', 540, top - 36); x.restore(); }
+    x.strokeStyle = P.accent; x.lineWidth = 12; x.lineCap = 'round'; x.beginPath();
+    for (let i = 0; i <= 60 * dr; i++) { const u = i / 60, px = lerp(x0, x1, u), pyy = f(u); i ? x.lineTo(px, pyy) : x.moveTo(px, pyy); } x.stroke();
+    x.strokeStyle = P.track; x.lineWidth = 6; x.beginPath(); x.moveTo(x0, base + 20); x.lineTo(x1, base + 20); x.stroke();
+    font(32, 700); x.fillStyle = P.ink2; x.textAlign = 'center'; x.textBaseline = 'top';
+    x.save(); x.globalAlpha *= clamp((t - B(b0 + .8)) / .25); x.fillText(s.leftLabel || 'Cool', x0 + 60, base + 34); x.fillText(s.rightLabel || 'Cool', x1 - 60, base + 34); x.restore();
+    const hd = spring(t - B(b0 + 2.1), 12, .75);
+    if (hd > 0) { const hx = lerp(x0, x1, .17), hy = f(.17) - 70; x.save(); x.translate(hx, hy); x.scale(hd, hd);
+      x.fillStyle = '#7FA86A'; x.beginPath(); x.arc(0, 0, 54, 0, 7); x.fill(); x.fillStyle = '#B9D99A'; x.beginPath(); x.arc(0, 4, 32, 0, 7); x.fill(); x.restore(); }
+    x.textAlign = 'left';
+    return [[b0 + .3, 'swish'], [b0 + 1.3, 'click'], [b0 + 2.1, 'pop']];
+  },
+  water(t, s, py, b0) {                     // seed tray under a fine mist; the mix darkens as it stays moist
+    const P = CFG.palette, ox = 260, oy = py + 470, w = 560, h = 100;
+    const a = spring(t - B(b0 + .2), 12, .8);
+    x.save(); x.globalAlpha *= clamp(a); x.fillStyle = '#3B3A36'; rr(ox - 16, oy - 16, w + 32, h + 32, 16); x.fill();
+    const wet = easeOut((t - B(b0 + 1.2)) / B(1.2));
+    x.fillStyle = `rgb(${Math.round(lerp(150, 94, wet))},${Math.round(lerp(118, 70, wet))},${Math.round(lerp(92, 52, wet))})`; rr(ox, oy, w, h, 10); x.fill(); x.restore();
+    const mist = win(t, b0 + .8, b0 + 3.2, .25);
+    if (mist > 0) { x.save(); x.globalAlpha *= mist; x.fillStyle = '#7FB7DA';
+      for (let k = 0; k < 26; k++) { const ph = ((t - B(b0)) * 1.2 + k * .173) % 1; x.beginPath(); x.arc(ox + 20 + (k * 131) % (w - 40), py + 360 + ph * (oy - py - 370), 7, 0, 7); x.fill(); }
+      x.restore(); }
+    if (s.chip) chip(s.chip, 540, oy + h + 55, '#FFFFFF', P.ink, 38, clamp((t - B(b0 + 2.2)) / .25));
+    return [[b0 + .2, 'pop'], [b0 + .8, 'drip'], [b0 + 1.6, 'drip'], [b0 + 2.4, 'drip']];
+  },
+  recap(t, s, py, b0) {                     // the facts already shown, ticked off one by one
+    const P = CFG.palette;
+    s.items.forEach((it, i) => {
+      const tb = B(b0 + 1 + i * .6), y = py + 420 + i * 120, pop = spring(t - tb, 16, .7);
+      if (pop <= 0) return;
+      x.save(); x.translate(200, y); x.scale(pop, pop); x.fillStyle = P.accent; x.beginPath(); x.arc(0, 0, 38, 0, 7); x.fill();
+      x.strokeStyle = '#fff'; x.lineWidth = 9; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath(); x.moveTo(-16, 0); x.lineTo(-5, 11); x.lineTo(17, -13); x.stroke(); x.restore();
+      x.save(); x.globalAlpha *= clamp((t - tb) / .25); font(fitFont(it, 640, 54, 800), 800); x.fillStyle = P.ink; x.textBaseline = 'middle'; x.textAlign = 'left'; x.fillText(it, 270, y + 2); x.restore();
+    });
+    return s.items.map((_, i) => [b0 + 1 + i * .6, 'pop']);
+  },
+};
+
+function grow(t) {
+  const P = CFG.palette, zm = CFG.zoom || 1;
+  const CARD = [90, 270, 900, 560, 34];
+  const rect = rectTrack(t, [[0, FULL], [4, CARD], [16, FULL]], 10, .9);
+  const zoom = track(t, [[0, 1.14 * zm], [4, 1.0 * zm], [16, 1.06 * zm], [28, 1.14 * zm]], 7, .92);
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  photoIn(rect, CFG.focus[0], CFG.focus[1], zoom);
+  const sh = win(t, 0.2, 4.2, .4); if (sh > 0) { x.globalAlpha = sh; shade(860, H, .96); x.globalAlpha = 1; }
+  hookWords(t, CFG.hook);
+
+  const panelTop = track(t, [[0, H + 40], [4.2, 880], [15.6, H + 40]], 10, .9);
+  if (panelTop < H) { x.fillStyle = P.panel; rr(60, panelTop, 960, H - panelTop + 80, 40); x.fill(); }
+  const py = panelTop, evs = [];
+  CFG.scenes.forEach((s, i) => {
+    const b0 = 4 + 4 * i, b1 = i === 2 ? 15.6 : b0 + 4;
+    if (t > B(b0) && t < B(b1) + .5) {
+      const out = 1 - easeIO((t - B(b1)) / .35);
+      x.save(); x.globalAlpha = out; evs.push(...SCN[s.type](t, s, py, b0)); x.restore();
+      maskLine(s.title, 540, py + 170, fitFont(s.title, 880, 76, 900), 900, P.ink, B(b0 + .4), B(b1), t, 'center');
+      if (s.sub) maskLine(s.sub, 540, py + 245, fitFont(s.sub, 880, 46, 400), 400, P.ink2, B(b0 + 1), B(b1), t, 'center');
+      if (s.note) maskLine(s.note, 540, py + 310, fitFont(s.note, 860, 38, 700), 700, P.accent, B(b0 + 2.4), B(b1), t, 'center');
+    } else {
+      // events are needed for the whole timeline (sound mix asks at t=0): evaluate silently
+      x.save(); x.globalAlpha = 0; evs.push(...SCN[s.type](-1, s, py, b0)); x.restore();
+    }
+  });
+  // sources stay visible while facts are on screen
+  const sa = win(t, 4.6, 15.6, .3);
+  if (sa > 0) { font(28, 400); x.globalAlpha = sa; x.fillStyle = P.ink2; x.textAlign = 'center'; x.textBaseline = 'alphabetic'; x.fillText(CFG.source, 540, Math.max(py + 690, 1560)); x.globalAlpha = 1; x.textAlign = 'left'; }
+
+  // bar 5: hero — the illustration floods back with the product name
+  const hs = win(t, 16.6, 20.2, .4); if (hs > 0) { x.globalAlpha = hs; shade(980, H, .96); x.globalAlpha = hs * .94; x.fillStyle = P.panel; rr(50, 1228, 980, 290, 34); x.fill(); x.globalAlpha = 1; }
+  const nsz = fitFont(CFG.product, 880, 86, 900);
+  maskLine(CFG.payoff, 90, 1340, 80, 900, P.accent, B(16.6), B(20), t);
+  maskLine(CFG.product, 90, 1440, nsz, 700, P.ink, B(17), B(20), t);
+  cta(t, 20, 30.5);
+  ev(0, 'start'); CFG.hook.forEach(h => ev(h.beat, 'tick')); ev(4, 'whoosh');
+  evs.forEach(([b, k]) => ev(b, k));
+  ev(16, 'impact'); ev(20, 'whoosh'); ev(21, 'impact'); ev(29.3, 'whoosh');
+}
+
+window.draw = function (t) {
+  window.EVENTS = [];
+  x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1; x.setLineDash([]); x.shadowBlur = 0;
+  ({ fit, grow })[CFG.template](t);
+  vignette(); grain(t);
+};
+draw(0);
+</script>
+</body></html>
