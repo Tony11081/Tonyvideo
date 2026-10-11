@@ -1,0 +1,228 @@
+[
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "fit",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "id": "FP-H9",
+  "slug": "v3-natural-wood-coffee-table",
+  "image": "09-natural-wood-coffee-table-916.png",
+  "focus": [
+   0.5,
+   0.47
+  ],
+  "bbox": [
+   0.12,
+   0.43,
+   0.89,
+   0.62
+  ],
+  "detail": {
+   "fx": 0.5,
+   "fy": 0.48,
+   "zoom": 1.9
+  },
+  "shape": "rect",
+  "hook": [
+   {
+    "text": "Measure the",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "walkway",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "first",
+    "beat": 2,
+    "size": 112
+   }
+  ],
+  "hookY": 1420,
+  "measure": {
+   "text": "47.24 × 23.62 × 17.91 in",
+   "caption": "Listed overall dimensions"
+  },
+  "scene": {
+   "type": "tape",
+   "caption": "Leave room to walk around"
+  },
+  "checks": [
+   "Compare to sofa seat height",
+   "Check the delivery route"
+  ],
+  "product": "Natural Wood Coffee Table",
+  "dims": "47.24 × 23.62 × 17.91 in",
+  "music": {
+   "style": "home",
+   "seed": 11
+  },
+  "facts": "工作单 10-11 第 29 行 FP-H9 原文：Listed overall dimensions 47.24 x 23.62 x 17.91 in；量沙发前空间并留走动空间；桌高和沙发座高比；查门、走廊、楼梯转角。商品页 https://noralanehome.com/product/natural-wood-coffee-table-w3158p426657/",
+  "source": "工作单 10-11 第 29 行（文字原文）；图：第 32 行小墨交的商品页 og:image 原图"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "fit",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "id": "FP-H11",
+  "slug": "v3-black-swivel-bar-stools",
+  "image": "11-black-swivel-bar-stools-916.png",
+  "focus": [
+   0.5,
+   0.47
+  ],
+  "bbox": [
+   0.2,
+   0.18,
+   0.77,
+   0.72
+  ],
+  "detail": {
+   "fx": 0.45,
+   "fy": 0.35,
+   "zoom": 1.8
+  },
+  "shape": "rect",
+  "lightPhoto": true,
+  "hook": [
+   {
+    "text": "Measure your",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "counter",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "first",
+    "beat": 2,
+    "size": 112
+   }
+  ],
+  "hookY": 1450,
+  "measure": {
+   "text": "19 × 18 × 43 in",
+   "caption": "Listed · adjustable range 24 to 33"
+  },
+  "scene": {
+   "type": "tape",
+   "caption": "Leave room to swivel"
+  },
+  "checks": [
+   "Compare counter to range",
+   "How many included? Ask us"
+  ],
+  "product": "Black Swivel Bar Stools",
+  "dims": "19 × 18 × 43 in",
+  "music": {
+   "style": "home",
+   "seed": 12
+  },
+  "facts": "工作单 10-11 第 29 行 FP-H11 原文：Listed overall dimensions 19 x 18 x 43 in；页面写可调高度 24 to 33（未写单位，画面照写不加单位）；量台面高度和可调范围比；留转动和上下的空间；页面没写含几张，下单前问我们。商品页 https://noralanehome.com/product/black-swivel-bar-stools-b347p337867/",
+  "source": "工作单 10-11 第 29 行（文字原文）；图：第 32 行小墨交的商品页 og:image 原图"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "fit",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "id": "FP-H12",
+  "slug": "v3-green-boucle-storage-bench",
+  "image": "12-green-boucle-storage-bench-916.png",
+  "focus": [
+   0.5,
+   0.47
+  ],
+  "bbox": [
+   0.17,
+   0.37,
+   0.77,
+   0.61
+  ],
+  "detail": {
+   "fx": 0.47,
+   "fy": 0.48,
+   "zoom": 1.9
+  },
+  "shape": "rect",
+  "hook": [
+   {
+    "text": "Plan the",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "spot",
+    "beat": 1,
+    "size": 180,
+    "accent": true
+   },
+   {
+    "text": "first",
+    "beat": 2,
+    "size": 112
+   }
+  ],
+  "hookY": 1420,
+  "measure": {
+   "text": "52.3 × 18.5 × 24.4 in",
+   "caption": "As listed · check which is the height"
+  },
+  "scene": {
+   "type": "door",
+   "caption": "Check the delivery route"
+  },
+  "checks": [
+   "Room to open the storage",
+   "Room to walk past"
+  ],
+  "product": "Green Boucle Storage Bench",
+  "dims": "52.3 × 18.5 × 24.4 in",
+  "music": {
+   "style": "home",
+   "seed": 13
+  },
+  "facts": "工作单 10-11 第 29 行 FP-H12 原文：Listed overall dimensions 52.3 x 18.5 x 24.4 in；量床尾或玄关的位置；留打开储物和走过的空间；确认哪个是高度并查搬运路线。商品页 https://noralanehome.com/product/green-boucle-storage-bench-w2671p208547/",
+  "source": "工作单 10-11 第 29 行（文字原文）；图：第 32 行小墨交的商品页 og:image 原图"
+ }
+]
