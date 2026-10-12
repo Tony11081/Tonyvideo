@@ -1,0 +1,473 @@
+[
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "id": "V-S06",
+  "slug": "v3-lettuce-container-fall",
+  "template": "grow",
+  "image": "NCS-SC-LC093C-tom-thumb-lettuce-AI-v2.png",
+  "focus": [
+   0.5,
+   0.5
+  ],
+  "textOn": "light",
+  "hook": [
+   {
+    "text": "Lettuce in",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "a pot",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "this fall?",
+    "beat": 2,
+    "size": 108
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "seasons",
+    "on": [
+     "Spring",
+     "Fall"
+    ],
+    "title": "Cool spring or fall",
+    "sub": "Heat and dry soil can cause bolting"
+   },
+   {
+    "type": "recap",
+    "items": [
+     "About 2 quarts of soil",
+     "6–8 inches deep"
+    ],
+    "title": "Pot size, at minimum"
+   },
+   {
+    "type": "water",
+    "chip": "Evenly moist",
+    "title": "Shallow roots",
+    "sub": "Keep the root zone evenly moist"
+   }
+  ],
+  "source": "Source: NC State Extension Plant Toolbox",
+  "payoff": "Sow by local dates",
+  "product": "Tom Thumb Dwarf Lettuce Seeds – 300 seeds",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "palette": {
+   "bg": "#F3F5EE",
+   "panel": "#FAFBF6",
+   "ink": "#22301E",
+   "ink2": "#55624F",
+   "accent": "#4E8A3A",
+   "accent2": "#CFE6BF",
+   "dark": "#1F2B1B",
+   "soil": "#7A5A43",
+   "track": "#DCE5D3"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 41
+  },
+  "facts": "社媒文案 S3/N01/N02/Q-N14-Q3（大白 10-05 已核）：冷凉春秋；高温和干土会抽薹发苦；容器一般最少约 2 夸脱土、6–8 英寸深；浅根，根区保持均匀湿润；按当地霜期；300 粒；来源 NC State Extension Plant Toolbox；文案编号 V-S06"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "V-S07",
+  "slug": "v3-milkweed-fall-sowing",
+  "image": "NCS-SC-MW1520-prairie-milkweed-AI-v3a.png",
+  "focus": [
+   0.5,
+   0.36
+  ],
+  "hook": [
+   {
+    "text": "Sowing",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "milkweed",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "this fall?",
+    "beat": 2,
+    "size": 108
+   }
+  ],
+  "hookY": 1320,
+  "scenes": [
+   {
+    "type": "depth",
+    "chip": "~1/4 in",
+    "title": "About 1/4 inch of soil",
+    "sub": "A light cover for fall outdoor sowing"
+   },
+   {
+    "type": "seasons",
+    "on": [
+     "Fall",
+     "Winter"
+    ],
+    "title": "Cold, moist winters help",
+    "sub": "Fall sowing can help break dormancy",
+    "note": "Otherwise follow the packet's cold-treatment directions"
+   },
+   {
+    "type": "years",
+    "hl": [
+     1
+    ],
+    "chip": "Slow start",
+    "chipX": 270,
+    "title": "Flowers may take 2–3 years",
+    "sub": "Milkweed seedlings grow slowly"
+   }
+  ],
+  "source": "Source: Iowa State University Extension",
+  "payoff": "Plant now, be patient",
+  "product": "Prairie Milkweed Seeds – 20 seeds",
+  "palette": {
+   "bg": "#F7F2F1",
+   "panel": "#FCF9F8",
+   "ink": "#33242A",
+   "ink2": "#66555B",
+   "accent": "#A44A6A",
+   "accent2": "#EBC9D5",
+   "dark": "#2E1F25",
+   "soil": "#7A5A43",
+   "track": "#EADDE1"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 42
+  },
+  "facts": "社媒文案 Q-N04-Q1 / Q-N04-Q2（大白 10-05/10-06 已核）：秋季户外播约 1/4 英寸薄覆土；冬季冷湿的地方秋播有助打破休眠，否则按包装冷处理说明；幼苗慢，可能 2–3 年开花（may）；20 粒；来源 Iowa State University Extension；文案编号 V-S07"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "V-S08",
+  "slug": "v3-lavender-cold-stratify",
+  "image": "NCS-SC-LA015C-english-lavender-vera-AI-v2.png",
+  "focus": [
+   0.52,
+   0.42
+  ],
+  "hook": [
+   {
+    "text": "Lavender",
+    "beat": 0,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "seeds:",
+    "beat": 1,
+    "size": 108
+   },
+   {
+    "text": "chill first?",
+    "beat": 2,
+    "size": 108
+   }
+  ],
+  "hookY": 1380,
+  "scenes": [
+   {
+    "type": "packet",
+    "title": "Our packet says: yes",
+    "sub": "About one month of cold stratification first"
+   },
+   {
+    "type": "depth",
+    "chip": "1/8 in",
+    "cover": true,
+    "title": "Then 1/8 inch deep",
+    "sub": "Soilless mix, light perlite cover"
+   },
+   {
+    "type": "days",
+    "max": 21,
+    "range": [
+     14,
+     21
+    ],
+    "title": "14–21 days",
+    "sub": "Germination usually begins · about 70°F",
+    "note": "General English lavender guidance"
+   }
+  ],
+  "source": "Source: Utah State University Extension; our listing",
+  "payoff": "Slow, so start early",
+  "product": "Bulk English Lavender Seeds – approx. 500 seeds",
+  "palette": {
+   "bg": "#F6F2EC",
+   "panel": "#FBF8F3",
+   "ink": "#2E2440",
+   "ink2": "#5E5670",
+   "accent": "#7A5BA6",
+   "accent2": "#D9C8F2",
+   "dark": "#2B2140",
+   "soil": "#7A5A43",
+   "track": "#E4DCEC"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 43
+  },
+  "facts": "社媒文案 S4/N03/Q-N18-Q2/Q-N18-Q3（大白 10-06 已核）：商品页建议播前约一个月冷层积；USU 一般英国薰衣草约 1/8 英寸深，无土基质轻覆珍珠岩；约 70°F 通常 14–21 天开始发芽；约 500 粒；来源 Utah State University Extension + 商品页；文案编号 V-S08"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "V-S09",
+  "slug": "v3-snapdragon-no-sprouts",
+  "image": "NCS-SC-TW-twinny-violet-snapdragon-AI-v1.png",
+  "focus": [
+   0.5,
+   0.66
+  ],
+  "hook": [
+   {
+    "text": "No",
+    "beat": 0,
+    "size": 108
+   },
+   {
+    "text": "snapdragon",
+    "beat": 1,
+    "size": 150,
+    "accent": true
+   },
+   {
+    "text": "sprouts yet?",
+    "beat": 2,
+    "size": 108
+   }
+  ],
+  "hookY": 1300,
+  "scenes": [
+   {
+    "type": "surface",
+    "mode": "wrong",
+    "chip": "Buried",
+    "title": "Were they buried?",
+    "sub": "Snapdragon seed needs light to germinate"
+   },
+   {
+    "type": "days",
+    "max": 21,
+    "range": [
+     7,
+     14
+    ],
+    "title": "Often 7–14 days",
+    "sub": "at 70–75°F with light and moisture",
+    "note": "General MSU guidance · our Twinny listing says 7–21 days"
+   },
+   {
+    "type": "water",
+    "chip": "Fine vermiculite",
+    "title": "Keep moisture in",
+    "sub": "A fine vermiculite layer can help"
+   }
+  ],
+  "source": "Source: Mississippi State University Extension",
+  "payoff": "Surface-sow and wait",
+  "product": "Twinny Violet Snapdragon Seeds – 25 seeds",
+  "palette": {
+   "bg": "#F7F3EE",
+   "panel": "#FCFAF6",
+   "ink": "#2C2238",
+   "ink2": "#5D5469",
+   "accent": "#8E3C8C",
+   "accent2": "#E9CBE6",
+   "dark": "#2A1F33",
+   "soil": "#7A5A43",
+   "track": "#E7DDE6"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 44
+  },
+  "facts": "社媒文案 S6/Q-N11-Q1/Q-N11-Q2（大白已核）：金鱼草种子需光，放表面；薄层蛭石保湿；MSU 一般 70–75°F 7–14 天（有光有湿度）；Twinny 商品页另列 7–21 天（大白 Q-N11-Q2 核注）；25 粒；来源 Mississippi State University Extension；文案编号 V-S09"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "grow",
+  "domain": "nuptialco.com",
+  "ctaLine": "Shop the seeds",
+  "textOn": "light",
+  "id": "V-S10",
+  "slug": "v3-mountain-mint-pollinator-rain-garden",
+  "image": "NCS-SC-PY021C-clustered-mountain-mint-AI-v2.png",
+  "focus": [
+   0.5,
+   0.42
+  ],
+  "hook": [
+   {
+    "text": "Pollinators",
+    "beat": 0,
+    "size": 130,
+    "accent": true
+   },
+   {
+    "text": "for a",
+    "beat": 1,
+    "size": 108
+   },
+   {
+    "text": "rain garden?",
+    "beat": 2,
+    "size": 108
+   }
+  ],
+  "hookY": 1320,
+  "scenes": [
+   {
+    "type": "rain",
+    "title": "Suits rain gardens",
+    "sub": "NC State lists it as suitable"
+   },
+   {
+    "type": "water",
+    "chip": "Moist, drains well",
+    "title": "Moist but well-drained",
+    "sub": "Not long-standing water"
+   },
+   {
+    "type": "recap",
+    "items": [
+     "Butterflies & pollinators",
+     "Supports some moth larvae"
+    ],
+    "title": "Good for pollinators"
+   }
+  ],
+  "source": "Source: NC State Extension Plant Toolbox",
+  "payoff": "For rain gardens",
+  "product": "Clustered Mountain Mint Seeds – 100 seeds",
+  "palette": {
+   "bg": "#F3F5F1",
+   "panel": "#FAFBF8",
+   "ink": "#26302A",
+   "ink2": "#58635B",
+   "accent": "#3F6B4F",
+   "accent2": "#D5E4D9",
+   "dark": "#202A23",
+   "soil": "#7A5A43",
+   "track": "#DDE5DF"
+  },
+  "music": {
+   "style": "garden",
+   "seed": 45
+  },
+  "facts": "社媒文案 Q-N19-Q1/Q-N19-Q2（大白 10-05 已核）：花吸引蝴蝶等传粉者，并为部分蛾类幼虫提供支持；NC State 列为适合雨水花园，前提土壤湿润但排水良好，未推荐长期积水；100 粒；来源 NC State Extension Plant Toolbox；文案编号 V-S10"
+ },
+ {
+  "bpm": 120,
+  "beats": 32,
+  "ctaNote": "Link in the description",
+  "template": "fit",
+  "domain": "noralanehome.com",
+  "ctaLine": "See it on",
+  "palette": {
+   "bg": "#16120E",
+   "ink": "#1E1A16",
+   "accent": "#9A6B3F",
+   "accent2": "#EBCB9E",
+   "dark": "#17130F",
+   "wall": "#EFE8DC",
+   "tape": "#4A8FD1"
+  },
+  "id": "V-F08",
+  "slug": "v3-bar-stools-confirm-height",
+  "image": "11-black-swivel-bar-stools-916.png",
+  "focus": [
+   0.5,
+   0.47
+  ],
+  "bbox": [
+   0.2,
+   0.18,
+   0.77,
+   0.72
+  ],
+  "detail": {
+   "fx": 0.45,
+   "fy": 0.35,
+   "zoom": 1.8
+  },
+  "shape": "rect",
+  "lightPhoto": true,
+  "hook": [
+   {
+    "text": "Measure your",
+    "beat": 0,
+    "size": 112
+   },
+   {
+    "text": "counter",
+    "beat": 1,
+    "size": 170,
+    "accent": true
+   },
+   {
+    "text": "first",
+    "beat": 2,
+    "size": 112
+   }
+  ],
+  "hookY": 1450,
+  "measure": {
+   "text": "19 × 18 × 43 in",
+   "caption": "Listed overall dimensions"
+  },
+  "scene": {
+   "type": "tape",
+   "caption": "Leave room to swivel"
+  },
+  "checks": [
+   "Confirm seat height & units",
+   "How many included? Ask us"
+  ],
+  "product": "Black Swivel Bar Stools",
+  "dims": "19 × 18 × 43 in",
+  "music": {
+   "style": "home",
+   "seed": 46
+  },
+  "facts": "FP-H11 按大白 10-12（工作单第 60 行）退回意见改：去掉无单位的 24–33；商品页 Overall 19 x 18 x 43 in（原顺序，不指定宽）；下单前确认可调座高范围和单位再和台面比；留转动和上下空间；页面没写含几张，下单前问我们；文案编号 V-F08",
+  "source": "商品页 https://noralanehome.com/product/black-swivel-bar-stools-b347p337867/ ；图：小墨交的商品页原图"
+ }
+]
