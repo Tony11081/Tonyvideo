@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Etsy 免费工具 · 15s</title>
+<style>
+@font-face { font-family: Geist; src: url(fonts/Geist-Variable.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+:root { --bg: #050505; --text: #f4f4f5; --muted: #8a8a93; --dim: #55555c; --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
+  --lime: #c8ff00; --warn: #ffb224; --red: #ff5a4f; --blue: #7c8db5;
+  --chrome: linear-gradient(180deg, #fff 0%, #fff 38%, #a1a1aa 100%);
+  --sans: Geist, "Noto Sans CJK SC", sans-serif; --mono: JBM, ui-monospace, "Noto Sans CJK SC", monospace; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: var(--bg); overflow: hidden; }
+#stage { position: relative; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; width: 1080px; height: 1920px; }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+#grid, #gridLit { background-image: radial-gradient(rgba(255,255,255,.16) 1.4px, transparent 1.8px); background-size: 26px 26px; }
+#gridLit { background-image: radial-gradient(rgba(200,255,0,.85) 1.6px, transparent 2px); }
+#grain { opacity: .07; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#vignette { background: radial-gradient(ellipse 85% 70% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
+#col { position: absolute; inset: 0; }
+#col > *, #root > * { position: absolute; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { display: flex; align-items: center; gap: 14px; font: 500 20px/1 var(--mono); letter-spacing: .22em; color: var(--muted); white-space: nowrap; }
+.eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.6); }
+.h2wrap { overflow: hidden; padding-bottom: .1em; }
+.h2 { display: block; font-size: 84px; font-weight: 650; letter-spacing: -.04em; line-height: 1.12; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+.tease { font: 650 230px/1 var(--sans); letter-spacing: -.05em; white-space: nowrap; background: linear-gradient(180deg,#3f3f46,#18181b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lbl { font: 500 19px/1 var(--mono); letter-spacing: .2em; color: var(--muted); white-space: nowrap; }
+.big { font: 650 72px/1 var(--sans); letter-spacing: -.03em; white-space: nowrap; }
+.mono { font-family: var(--mono); }
+.card { border-radius: 20px; border: 1px solid var(--line2); background: linear-gradient(180deg, rgba(24,24,27,.86), rgba(10,10,11,.94)); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 30px 80px -30px rgba(0,0,0,.9); }
+.slot { position: absolute; display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 20px; border-radius: 14px;
+  border: 1.5px dashed rgba(255,255,255,.12); font: 400 25px/1 var(--mono); color: #e4e4e7; white-space: nowrap; overflow: hidden; }
+.slot .c { font: 500 20px/1 var(--mono); color: var(--dim); margin-left: 12px; flex: none; }
+.slot .t { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.row { display: flex; align-items: center; height: 58px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.row .k { font-size: 29px; font-weight: 560; }
+.row .d { font: 400 20px/1 var(--mono); color: var(--dim); margin-left: 14px; }
+.row .a { margin-left: auto; font: 500 29px/1 var(--mono); }
+.chk { display: flex; align-items: center; gap: 16px; font-size: 32px; font-weight: 540; white-space: nowrap; }
+.chk b { font: 500 28px/1 var(--mono); color: var(--lime); width: 26px; }
+.chk.x b { color: var(--red); }
+.pillopt { display: flex; align-items: center; gap: 14px; height: 76px; padding: 0 30px; border-radius: 999px; border: 1px solid var(--line2); font-size: 30px; font-weight: 560; color: #a1a1aa; white-space: nowrap; background: rgba(255,255,255,.02); }
+.pillopt i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #55555c; flex: none; }
+.foot { font: 400 19px/1.55 var(--mono); color: #5f5f68; width: 920px; }
+.etitle { font-size: 108px; letter-spacing: -.045em; }
+.url { display: flex; align-items: center; gap: 14px; height: 84px; padding: 0 40px; border-radius: 999px; background: var(--lime); color: #050505;
+  font: 600 34px/1 Geist, sans-serif; overflow: hidden; box-shadow: 0 0 0 1px rgba(200,255,0,.4), 0 18px 60px -12px rgba(200,255,0,.55); }
+.url .sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.75) 48%, transparent 64%); }
+.path { font: 400 23px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+#dot { border-radius: 50%; background: var(--lime); }
+#ring { border-radius: 50%; border: 3px solid var(--lime); }
+.sub { position: absolute; left: 80px; top: 1330px; }
+.subline { overflow: hidden; padding-bottom: .12em; }
+.subline span { display: inline-block; white-space: nowrap; }
+.sub .zh { font-size: 50px; font-weight: 600; letter-spacing: .01em; }
+.sub .en { font-size: 28px; font-weight: 450; color: #a1a1aa; margin-top: 8px; }
+#sitebar { position: absolute; left: 80px; top: 1478px; display: flex; align-items: center; gap: 14px; height: 46px; padding: 0 20px 0 16px; border-radius: 999px;
+  border: 1px solid var(--line2); background: rgba(10,10,11,.6); font: 500 22px/1 var(--mono); color: #a1a1aa; white-space: nowrap; }
+#sitebar i { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.8); }
+#sitebar span { font-family: var(--sans); font-weight: 600; color: var(--text); font-size: 23px; }
+#sitebar b { font-weight: 500; color: var(--lime); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="grid"></div>
+  <div class="layer" id="gridLit"></div>
+  <div class="layer" id="glow"></div>
+  <div id="col"></div>
+  <div id="sitebar"><i></i><span>Etsy 卖家工具站</span><b>openaigrowth.com</b></div>
+  <div id="subs"></div>
+  <div class="layer" id="vignette"></div>
+  <div class="layer" id="grain"></div>
+</div>
+<script>
+"use strict";
+const Q = new URLSearchParams(location.search);
+const EP = Q.get("ep") || "tags";
+const W = 1080, H = 1920, BEAT = .5, b = (x) => x * BEAT, FPS = 30, DUR = b(30);
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const clamp = (x, a = 0, c = 1) => Math.min(c, Math.max(a, x));
+const lerp = (a, c, u) => a + (c - a) * u;
+const seg = (t, t0, t1) => clamp((t - t0) / (t1 - t0));
+const eOut = (u) => (u >= 1 ? 1 : 1 - Math.pow(2, -10 * u));
+const inOut3 = (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const in3 = (u) => u * u * u;
+const cubic = (u) => u * u * (3 - 2 * u);
+function spring(t, f = 2.6, z = .72) { if (t <= 0) return 0; const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); }
+const show = (e, on) => { e.style.visibility = on ? "visible" : "hidden"; };
+const pos = (e, x, y) => { e.style.left = x + "px"; e.style.top = y + "px"; };
+const col = $("#col");
+const M = 80, CW = 920, SY = 450;
+// common timeline (beats)
+const A = { hookOut: b(3), mech: b(3.5), ctaOut: b(23.6), cta: b(24.2), ctaTitle: b(24.6), ctaLine: b(25.6), url: b(26.6), end: b(30) };
+function fadeUp(e, t0, t, dy = 24, d = .5) { const k = eOut(seg(t, t0, t0 + d)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * dy}px)`; return k; }
+function slideIn(e, t0, t, dx = -30) { const k = eOut(seg(t, t0, t0 + .45)); e.style.opacity = k; e.style.transform = `translateX(${(1 - k) * dx}px)`; return k; }
+const mechOut = (t) => in3(seg(t, A.ctaOut, A.ctaOut + .35));
+
+// ======================= episodes =======================
+const EPS = {};
+
+// ---- 01 tags ----
+EPS.tags = {
+  n: "01", slug: "tag-checker", name: "13 标签检查", q: ["Etsy 13 个标签，", "怎么写满？"], tease: "13",
+  subs: [
+    [1, 4.5, "Etsy 一个 listing 最多 13 个标签。", "An Etsy listing takes up to 13 tags."],
+    [5, 10.5, "每个不超过 20 个字符，不要重复。", "20 characters each, no repeats."],
+    [11, 16, "超长的、重复的，工具直接标出来。", "Too long or repeated? The checker flags it."],
+    [16.5, 23.5, "写满 13 个，再核对和商品对不对得上。", "Fill all 13, then check they fit the item."],
+  ],
+  foot: "规则：13 个标签、每个 ≤ 20 字符（Etsy 官方说明）；示例为网站首页演示商品的标签。",
+  build(root) {
+    const S = {};
+    S.lbl = el("div", "lbl", root, "TAGS · 每个 ≤ 20 字符"); pos(S.lbl, M, SY);
+    S.cnt = el("div", "big num mono", root, "0/13"); S.cnt.style.fontSize = "64px"; S.cnt.style.fontFamily = "var(--mono)";
+    const good = ["cake server set", "wedding cake knife", "engraved server", "maple cake server", "custom cake cutter", "bridal shower gift", "wedding keepsake",
+      "personalized knife", "cake cutting set", "rustic wedding", "anniversary gift", "wood cake server", "couple name gift"];
+    S.final = good;
+    S.first = good.slice(); S.first[7] = "personalized cake server set"; S.first[12] = "Cake Server Set";
+    S.times = good.map((_, i) => i < 7 ? b(4.5 + i * .5) : b(8 + (i - 7) * .5));
+    S.flag = { 7: b(11), 12: b(12) }; S.fix = { 7: b(14), 12: b(15) };
+    const sw = 451, sh = 64, gx = 18, gy = 16;
+    S.pos = good.map((_, i) => ({ x: M + (i < 7 ? 0 : sw + gx), y: SY + 70 + (i < 7 ? i : i - 7) * (sh + gy) }));
+    S.slots = good.map((_, i) => { const s = el("div", "slot", root, `<span class="t"></span><span class="c"></span>`); pos(s, S.pos[i].x, S.pos[i].y); s.style.width = sw + "px"; return s; });
+    S.status = el("div", "chk mono", root); pos(S.status, M + sw + gx, SY + 70 + 6 * (sh + gy) + 10); S.status.style.fontSize = "24px";
+    S.checks = ["13 个标签", "每个 ≤ 20 字符", "没有重复"].map((s, i) => { const c = el("div", "chk", root, `<b>✓</b>${s}`); pos(c, M + [0, 270, 590][i], SY + 650); c.style.fontSize = "30px"; return c; });
+    S.note = el("div", "lbl", root, "相关性和商品事实，仍需你自己核对"); pos(S.note, M, SY + 718); S.note.style.letterSpacing = ".04em"; S.note.style.fontSize = "22px";
+    return S;
+  },
+  measure(S) { pos(S.cnt, M + CW - S.cnt.offsetWidth - 20, SY - 22); },
+  seek(S, t) {
+    const out = mechOut(t);
+    let n = 0;
+    S.slots.forEach((s, i) => {
+      const t0 = S.times[i], on = t >= t0;
+      const fixed = S.fix[i] && t >= S.fix[i], flagged = S.flag[i] && t >= S.flag[i] && !fixed;
+      const txt = fixed || !S.fix[i] ? S.final[i] : S.first[i];
+      $(".t", s).textContent = on ? txt : "";
+      const len = Array.from(txt).length;
+      const dup = i === 12 && !fixed;
+      $(".c", s).textContent = on ? (dup && flagged ? "重复" : `${len}/20`) : "";
+      const bad = flagged; const k = spring(t - t0, 3, .7);
+      s.style.borderStyle = on ? "solid" : "dashed";
+      s.style.borderColor = !on ? "" : bad ? "rgba(255,90,79,.8)" : `rgba(200,255,0,${.18 + .6 * clamp(1 - (t - (fixed ? S.fix[i] : t0)) / .6)})`;
+      s.style.background = on ? (bad ? "rgba(255,90,79,.08)" : "rgba(255,255,255,.03)") : "transparent";
+      $(".c", s).style.color = bad ? "#ff5a4f" : on ? "#8a8a93" : "";
+      $(".t", s).style.color = bad ? "#ffb4ae" : "";
+      const shake = bad ? Math.sin((t - S.flag[i]) * 40) * 6 * Math.exp(-(t - S.flag[i]) / .25) : 0;
+      s.style.transform = `translateX(${shake}px) scale(${on ? .9 + .1 * clamp(k, 0, 1.1) : 1})`;
+      s.style.opacity = 1 - out;
+      if (on) n = i + 1;
+    });
+    S.cnt.textContent = `${n}/13`;
+    S.cnt.style.color = t >= S.fix[12] ? "#c8ff00" : "";
+    [S.lbl, S.cnt].forEach((e) => (e.style.opacity = (1 - out) * eOut(seg(t, A.mech, A.mech + .4))));
+    const bads = Object.keys(S.flag).filter((i) => t >= S.flag[i] && t < S.fix[i]).length;
+    show(S.status, t >= S.flag[7] && t < A.cta);
+    S.status.innerHTML = bads ? `<b style="color:#ff5a4f">✕</b><span style="color:#ff8a82">${bads} 个问题</span>` : `<b>✓</b><span>格式通过</span>`;
+    S.status.style.opacity = 1 - out;
+    S.checks.forEach((c, i) => { fadeUp(c, b(16.5) + i * .18, t); c.style.opacity *= 1 - out; });
+    fadeUp(S.note, b(19), t); S.note.style.opacity *= 1 - out;
+  },
+  dot(S, t) {
+    const right = (i) => ({ x: S.pos[i].x + 451 - 14, y: S.pos[i].y + 14 });
+    if (t < S.times[0]) return { x: S.pos[0].x - 30, y: S.pos[0].y + 32 };
+    if (t < S.flag[7] - .2) { let i = 0; S.times.forEach((x, j) => { if (t >= x - .12) i = j; }); const p = i ? right(i - 1) : right(0); const q = right(i); const u = eOut(seg(t, S.times[i] - .12, S.times[i] + .05)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 20 }; }
+    const hopTo = (p, q, t0, t1) => { const u = inOut3(seg(t, t0, t1)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 40 }; };
+    if (t < S.flag[12] - .2) return hopTo(right(12), right(7), S.flag[7] - .2, S.flag[7]);
+    if (t < S.fix[7] - .25) return hopTo(right(7), right(12), S.flag[12] - .2, S.flag[12]);
+    if (t < S.fix[12] - .25) return hopTo(right(12), right(7), S.fix[7] - .25, S.fix[7]);
+    if (t < b(16.3)) return hopTo(right(7), right(12), S.fix[12] - .25, S.fix[12]);
+    const c0 = { x: M - 26, y: SY + 650 + 20 };
+    return hopTo(right(12), c0, b(16.3), b(16.6));
+  },
+  events: () => [],
+};
+
+// ---- 02 title ----
+EPS.title = {
+  n: "02", slug: "title-counter", name: "标题字符检查", q: ["标题 140 字符，", "前 40 个最值钱。"], tease: "140",
+  subs: [
+    [1, 4.5, "Etsy 标题上限 140 个字符。", "Etsy titles max out at 140 characters."],
+    [5, 10.5, "不用凑满 140，说清楚就够。", "No need to pad it to 140."],
+    [11, 16.5, "最重要的词组，放进前 40 个字符。", "Put the key phrase in the first 40."],
+    [17, 23.5, "不写 Best、Perfect、Sale 这类空词。", "Skip empty words like Best, Perfect, Sale."],
+  ],
+  foot: "140 字符是 Etsy 官方上限；前 40 字符与空词规则来自 Etsy-Tony 标题方法。示例为网站首页演示标题。",
+  build(root) {
+    const S = {};
+    S.title = "Personalized Maple Cake Server Set, Engraved Wedding Cake Knife and Server";
+    S.lbl = el("div", "lbl", root, "TITLE"); pos(S.lbl, M, SY);
+    S.cnt = el("div", "big num", root, "0/140"); S.cnt.style.fontFamily = "var(--mono)"; S.cnt.style.fontSize = "64px";
+    S.PX = CW / 140;
+    S.ruler = el("div", "", root); pos(S.ruler, M, SY + 92); Object.assign(S.ruler.style, { width: CW + "px", height: "40px", borderRadius: "10px", background: "rgba(255,255,255,.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.14)", overflow: "hidden" });
+    S.fill = el("div", "", S.ruler); Object.assign(S.fill.style, { position: "absolute", left: 0, top: 0, height: "100%", background: "linear-gradient(180deg,#e2ff6a,#c8ff00 55%,#9fd000)" });
+    S.zone = el("div", "", root); pos(S.zone, M, SY + 80); Object.assign(S.zone.style, { width: 40 * S.PX + "px", height: "64px", borderRadius: "12px", border: "2px solid #c8ff00", boxShadow: "0 0 30px rgba(200,255,0,.5)" });
+    S.zl = el("div", "lbl", root, "前 40 个字符"); pos(S.zl, M, SY + 160); S.zl.style.color = "#c8ff00"; S.zl.style.letterSpacing = ".08em"; S.zl.style.fontSize = "22px";
+    S.ticks = el("div", "lbl", root, "0 ············ 40 ·························· 140"); pos(S.ticks, M, SY + 160); S.ticks.style.display = "none";
+    S.box = el("div", "card", root); pos(S.box, M, SY + 210); Object.assign(S.box.style, { width: CW + "px", padding: "30px 34px", minHeight: "220px" });
+    S.text = el("p", "", S.box); Object.assign(S.text.style, { fontSize: "40px", fontWeight: 540, lineHeight: 1.35, letterSpacing: "-.01em" });
+    S.chars = Array.from(S.title).map((ch, i) => { const s = el("span", "", S.text, ch === " " ? " " : ch); s.style.whiteSpace = "pre-wrap"; return s; });
+    S.rules = [["✓", "74 / 140 字符，说清楚就停"], ["✓", "核心词组在前 40 个字符"]].map(([m, s], i) => { const c = el("div", "chk", root, `<b>${m}</b>${s}`); pos(c, M, SY + 500 + i * 56); return c; });
+    S.ban = el("div", "", root); pos(S.ban, M, SY + 640); Object.assign(S.ban.style, { display: "flex", gap: "12px", flexWrap: "wrap", width: CW + "px" });
+    S.banW = ["Best", "Perfect", "Beautiful", "Amazing", "Sale", "Free Shipping"].map((w) => { const c = el("span", "", S.ban, w); Object.assign(c.style, { font: "500 26px/1 var(--mono)", padding: "12px 18px", borderRadius: "12px", border: "1px solid rgba(255,90,79,.5)", color: "#ff8a82", textDecoration: "line-through", background: "rgba(255,90,79,.06)" }); return c; });
+    S.t0 = b(4.5); S.t1 = b(9.5);
+    return S;
+  },
+  measure(S) { pos(S.cnt, M + CW - S.cnt.offsetWidth, SY - 22); S.cpos = S.chars.map((c) => { const r = c.getBoundingClientRect(); return { x: r.right, y: (r.top + r.bottom) / 2 }; }); },
+  typed(S, t) { return Math.round(S.chars.length * seg(t, S.t0, S.t1)); },
+  seek(S, t) {
+    const out = mechOut(t), n = this.typed(S, t);
+    S.cnt.textContent = `${n}/140`;
+    [S.lbl, S.cnt, S.ruler].forEach((e) => (e.style.opacity = (1 - out) * eOut(seg(t, A.mech, A.mech + .4))));
+    S.fill.style.width = n * S.PX + "px";
+    fadeUp(S.box, A.mech + .1, t, 20); S.box.style.opacity *= 1 - out;
+    const zk = eOut(seg(t, b(11), b(11) + .5)); S.zone.style.opacity = zk * (1 - out); S.zone.style.transform = `scaleX(${.6 + .4 * zk})`; S.zone.style.transformOrigin = "0 50%";
+    S.zl.style.opacity = zk * (1 - out);
+    const strong = 34; // "Personalized Maple Cake Server Set"
+    S.chars.forEach((c, i) => { c.style.opacity = i < n ? 1 : 0;
+      const in40 = i < 40 && t >= b(11.3); const hot = i < strong && t >= b(13);
+      c.style.color = hot ? "#c8ff00" : in40 ? "#ffffff" : t >= b(11.3) ? "#71717a" : "";
+      c.style.textShadow = hot ? `0 0 ${18 * Math.exp(-(t - b(13)) / .6) + 6}px rgba(200,255,0,.5)` : "";
+      c.style.background = in40 ? "rgba(200,255,0,.08)" : ""; });
+    S.rules.forEach((c, i) => { fadeUp(c, b(14) + i * .2, t); c.style.opacity *= 1 - out; });
+    S.banW.forEach((c, i) => { const k = eOut(seg(t, b(17.2) + i * .12, b(17.2) + i * .12 + .4)); c.style.opacity = k * (1 - out); c.style.transform = `scale(${.8 + .2 * k})`; });
+  },
+  dot(S, t) {
+    const n = this.typed(S, t);
+    if (t < S.t0) return { x: M + 20, y: SY + 210 + 30 + 28 };
+    if (t < b(10.8)) { const p = S.cpos[Math.max(0, n - 1)]; return { x: p.x + 14, y: p.y }; }
+    const hop = (p, q, t0, t1) => { const u = inOut3(seg(t, t0, t1)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 50 }; };
+    const end = S.cpos[S.chars.length - 1], z = { x: M + 40 * S.PX, y: SY + 112 };
+    if (t < b(13.8)) return hop({ x: end.x + 14, y: end.y }, z, b(10.8), b(11.1));
+    const r0 = { x: M + 13, y: SY + 500 + 28 };
+    if (t < b(17)) return hop(z, r0, b(13.8), b(14.1));
+    const bn = { x: M + 10, y: SY + 640 - 22 };
+    return hop(r0, bn, b(17), b(17.3));
+  },
+};
+
+// ---- 03 shipping ----
+EPS.ship = {
+  n: "03", slug: "shipping-weight", name: "运费计费重", q: ["国际运费，", "按什么重量算？"], tease: "0.3kg",
+  subs: [
+    [1, 4.5, "国际运费，不只看包裹多重。", "Shipping isn't only about weight."],
+    [5, 11.5, "还要算体积重：长×宽×高÷6000。", "There's volumetric weight: L×W×H ÷ 6000."],
+    [12, 17.5, "实重和体积重，取大的那个。", "You're billed on whichever is bigger."],
+    [18, 23.5, "这个 0.3 公斤的盒子，按 0.5 公斤算。", "This 0.3 kg box bills as 0.5 kg."],
+  ],
+  foot: "示例为网站工具默认值：20×15×10 cm、实重 0.3 kg、除数 6000、进位 0.1 kg、每 kg ¥200、挂号及附加费 ¥10。除数和报价以物流商确认为准。",
+  build(root) {
+    const S = {};
+    // A box drawn with three faces.
+    S.box = el("div", "", root); pos(S.box, M + 40, SY + 40); Object.assign(S.box.style, { width: "360px", height: "330px" });
+    const face = (css) => { const f = el("div", "", S.box); Object.assign(f.style, { position: "absolute", ...css }); return f; };
+    face({ left: "0px", top: "80px", width: "260px", height: "200px", background: "linear-gradient(180deg,#2a2a2e,#18181b)", border: "1.5px solid rgba(255,255,255,.22)" });
+    face({ left: "0px", top: "0px", width: "260px", height: "80px", background: "#3a3a40", border: "1.5px solid rgba(255,255,255,.22)", transformOrigin: "0 100%", transform: "skewX(-45deg) translateX(80px) scaleY(1)" });
+    face({ left: "260px", top: "0px", width: "80px", height: "200px", background: "#202024", border: "1.5px solid rgba(255,255,255,.22)", transformOrigin: "0 0", transform: "skewY(-45deg) translateY(80px)" });
+    face({ left: "0px", top: "80px", width: "260px", height: "200px", background: "linear-gradient(90deg,transparent 46%,rgba(200,255,0,.35) 48%,rgba(200,255,0,.35) 52%,transparent 54%)" });
+    S.dl = [["20 cm", 70, 300], ["15 cm", 296, 290], ["10 cm", -96, 160]].map(([s, x, y]) => { const d = el("div", "lbl", S.box, s); pos(d, x, y); d.style.position = "absolute"; d.style.color = "#e4e4e7"; d.style.fontSize = "24px"; d.style.letterSpacing = ".04em"; return d; });
+    S.scale = el("div", "", root, `<span class="lbl" style="letter-spacing:.1em">实重</span> <span class="mono" style="font-size:44px;color:#e4e4e7">0.3 kg</span>`); pos(S.scale, M + 470, SY + 300);
+    S.f1 = el("div", "mono", root, "长 × 宽 × 高 ÷ 6000"); pos(S.f1, M + 470, SY + 90); S.f1.style.fontSize = "34px"; S.f1.style.color = "#a1a1aa";
+    S.f2 = el("div", "mono", root, "20 × 15 × 10 ÷ 6000"); pos(S.f2, M + 470, SY + 160); S.f2.style.fontSize = "34px";
+    S.f3 = el("div", "", root, `<span class="lbl" style="letter-spacing:.1em">体积重</span> <span class="mono" style="font-size:44px;color:#ffb224">0.5 kg</span>`); pos(S.f3, M + 470, SY + 230);
+    // compare bars, 1 kg = 1500 px
+    const K = 1200;
+    S.bars = [["实重", .3, "#71717a"], ["体积重", .5, "#ffb224"]].map(([s, v, c], i) => {
+      const w = el("div", "", root); pos(w, M, SY + 400 + i * 92); w.style.width = CW + "px";
+      w.innerHTML = `<div class="lbl" style="letter-spacing:.1em;margin-bottom:12px">${s} · ${v} kg</div><div class="bar" style="height:34px;border-radius:9px;width:${v * K}px;background:${c}"></div>`; return w; });
+    S.take = el("div", "chk", root, `<b>←</b>取大：0.5 kg`); pos(S.take, M + 0.5 * K + 26, SY + 492 + 36); S.take.style.fontSize = "30px";
+    S.cost = el("div", "", root, `<div class="mono" style="font-size:34px;color:#a1a1aa">0.5 kg × ¥200 + ¥10</div><div style="font:650 88px/1.1 var(--sans);letter-spacing:-.03em;color:#c8ff00;margin-top:6px">= ¥110</div>`); pos(S.cost, M, SY + 600);
+    S.alt = el("div", "mono", root, "按实重估：0.3 × ¥200 + ¥10 = ¥70"); pos(S.alt, M + 340, SY + 690); S.alt.style.fontSize = "24px"; S.alt.style.color = "#71717a";
+    S.K = K;
+    return S;
+  },
+  measure() {},
+  seek(S, t) {
+    const out = mechOut(t);
+    const bk = spring(t - A.mech, 2, .75); S.box.style.opacity = clamp(bk) * (1 - out); S.box.style.transform = `translateY(${(1 - clamp(bk, 0, 1.1)) * 40}px)`;
+    S.dl.forEach((d, i) => { d.style.opacity = eOut(seg(t, b(4.5) + i * .2, b(4.5) + i * .2 + .4)); });
+    fadeUp(S.scale, b(4), t); S.scale.style.opacity *= 1 - out;
+    [S.f1, S.f2, S.f3].forEach((e, i) => { slideIn(e, b(5.5) + i * b(1.1), t); e.style.opacity *= 1 - out; });
+    S.bars.forEach((w, i) => { fadeUp(w, b(11.5) + i * .25, t, 16); w.style.opacity *= 1 - out; const k = eOut(seg(t, b(11.7) + i * .25, b(11.7) + i * .25 + .6)); $(".bar", w).style.transform = `scaleX(${k})`; $(".bar", w).style.transformOrigin = "0 50%"; });
+    const tk = t >= b(13.5); $(".bar", S.bars[1]).style.background = tk ? "#c8ff00" : "#ffb224"; $(".bar", S.bars[1]).style.boxShadow = tk ? `0 0 ${20 + 40 * Math.exp(-(t - b(13.5)) / .5)}px rgba(200,255,0,.55)` : "";
+    slideIn(S.take, b(13.5), t, -20); S.take.style.opacity *= 1 - out;
+    fadeUp(S.cost, b(17.5), t, 30); S.cost.style.opacity *= 1 - out;
+    fadeUp(S.alt, b(19.5), t, 12); S.alt.style.opacity *= 1 - out;
+  },
+  dot(S, t) {
+    const hop = (p, q, t0, t1) => { const u = inOut3(seg(t, t0, t1)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 50 }; };
+    const corner = { x: M + 40 + 340, y: SY + 40 + 6 }, f = { x: M + 450, y: SY + 110 }, f3 = { x: M + 450, y: SY + 260 };
+    const e0 = { x: M + .3 * S.K, y: SY + 400 + 46 }, e1 = { x: M + .5 * S.K, y: SY + 492 + 46 }, c = { x: M + 310, y: SY + 700 };
+    if (t < b(5.3)) return corner;
+    if (t < b(7.3)) return hop(corner, f, b(5.3), b(5.6));
+    if (t < b(11.6)) return hop(f, f3, b(7.3), b(7.7));
+    if (t < b(13.2)) return hop(f3, e0, b(11.6), b(12.1));
+    if (t < b(17.3)) return hop(e0, e1, b(13.2), b(13.5));
+    return hop(e1, c, b(17.3), b(17.7));
+  },
+};
+
+// ---- 04 partner pricing ----
+EPS.partner = {
+  n: "04", slug: "partner-pricing", name: "合作定价核算", q: ["合作分成，", "怎么定价不亏？"], tease: "150→?",
+  subs: [
+    [1, 4.5, "请人合作分成，售价怎么定才不亏？", "Sharing revenue with a partner? Price it so you don't lose."],
+    [5, 12.5, "成本 150，加上 Etsy 费、广告和分成。", "Cost 150, plus Etsy fees, ads and the partner's share."],
+    [13, 17.5, "建议售价 273，最后净赚 41.27。", "Price it at 273 and keep 41.27."],
+    [18, 23.5, "低于 214.23 就开始亏。", "Below 214.23, you lose money."],
+  ],
+  foot: "示例为工具默认值：成本 150（币种按你填写的）；Etsy 变动费率 9.5%、每单 0.45、广告 15%、合作分成 7%（扣平台费与广告后）是模型假设，不是店铺实际账单。",
+  build(root) {
+    const S = {};
+    S.P = 273; S.PX = CW / S.P;
+    S.parts = [["成本", "货款+运费+包装", 150, "#52525b", "150.00"], ["Etsy 费", "9.5% + 0.45", 26.39, "#ffb224", "26.39"], ["广告", "15%", 40.95, "#e09312", "40.95"],
+      ["合作分成", "7%，扣平台费与广告后", 14.40, "#7c8db5", "14.40"], ["最终利润", "15.12%", 41.27, "#c8ff00", "41.27"]];
+    S.times = [4.5, 6.5, 8.5, 10.5, 12.5].map(b);
+    S.lbl = el("div", "lbl", root, "建议售价 · RECOMMENDED"); pos(S.lbl, M, SY);
+    S.amt = el("div", "big num", root, "150.00"); pos(S.amt, M, SY + 30); S.amt.style.fontSize = "96px";
+    S.bar = el("div", "", root); pos(S.bar, M, SY + 170); Object.assign(S.bar.style, { width: CW + "px", height: "70px", borderRadius: "14px", background: "rgba(255,255,255,.03)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,.12)", overflow: "hidden" });
+    let x = 0; S.segs = S.parts.map(([, , v, c]) => { const s = el("div", "", S.bar); Object.assign(s.style, { position: "absolute", top: 0, height: "100%", left: x + "px", width: v * S.PX + "px", background: c, boxShadow: "inset 2px 0 0 #050505" }); s._x = x; s._w = v * S.PX; x += v * S.PX; return s; });
+    S.rows = S.parts.map(([k, d, , c, a], i) => { const r = el("div", "row", root, `<span style="width:14px;height:14px;border-radius:4px;background:${c};margin-right:18px"></span><span class="k">${k}</span><span class="d">${d}</span><span class="a num" style="color:${i === 4 ? "#c8ff00" : i === 0 ? "#e4e4e7" : "#ffb224"}">${i ? (i === 4 ? "" : "+") : ""}${a}</span>`); pos(r, M, SY + 290 + i * 58); r.style.width = CW + "px"; return r; });
+    S.be = el("div", "", root); pos(S.be, M + 214.23 * S.PX, SY + 150); Object.assign(S.be.style, { width: "3px", height: "110px", background: "#ff5a4f", boxShadow: "0 0 16px rgba(255,90,79,.8)" });
+    S.bel = el("div", "mono", root, "保本价 214.23"); pos(S.bel, M + 214.23 * S.PX - 230, SY + 112); S.bel.style.fontSize = "26px"; S.bel.style.color = "#ff8a82"; S.bel.style.whiteSpace = "nowrap";
+    S.ad = el("div", "chk", root, `<b>!</b>广告保本上限 85.32（31.25%）`); pos(S.ad, M, SY + 620); S.ad.querySelector("b").style.color = "#ffb224";
+    return S;
+  },
+  measure() {},
+  seek(S, t) {
+    const out = mechOut(t);
+    [S.lbl, S.bar].forEach((e) => (e.style.opacity = (1 - out) * eOut(seg(t, A.mech, A.mech + .4))));
+    let sum = 0, last = -1;
+    S.segs.forEach((s, i) => { const k = eOut(seg(t, S.times[i], S.times[i] + .45)); s.style.width = s._w * k + "px"; if (t >= S.times[i]) { sum += S.parts[i][2]; last = i; }
+      const fl = t >= S.times[i] ? Math.exp(-(t - S.times[i]) / .35) : 0; s.style.filter = fl > .02 ? `brightness(${1 + fl})` : ""; });
+    // the amount counts up to each new running total
+    const prev = last > 0 ? S.parts.slice(0, last).reduce((a, p) => a + p[2], 0) : 0;
+    const u = last >= 0 ? eOut(seg(t, S.times[last], S.times[last] + .4)) : 0;
+    const shown = last >= 0 ? lerp(prev, sum, u) : 0;
+    S.amt.textContent = last === 4 && u > .98 ? "273" : shown.toFixed(2);
+    S.amt.style.opacity = (1 - out) * eOut(seg(t, A.mech, A.mech + .4));
+    S.amt.style.color = last === 4 ? "#c8ff00" : "";
+    S.rows.forEach((r, i) => { slideIn(r, S.times[i], t); r.style.opacity *= 1 - out; });
+    const bk = eOut(seg(t, b(17.5), b(17.5) + .4)); S.be.style.opacity = bk * (1 - out); S.be.style.transform = `scaleY(${bk})`; S.bel.style.opacity = bk * (1 - out);
+    fadeUp(S.ad, b(20), t); S.ad.style.opacity *= 1 - out;
+  },
+  dot(S, t) {
+    const hop = (p, q, t0, t1) => { const u = inOut3(seg(t, t0, t1)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 50 }; };
+    let w = 0; S.segs.forEach((s) => { w += parseFloat(s.style.width) || 0; });
+    const endP = { x: M + w, y: SY + 170 + 35 };
+    if (t < b(17.2)) return { x: M + Math.max(w, 0), y: SY + 205 };
+    const be = { x: M + 214.23 * S.PX, y: SY + 150 };
+    if (t < b(19.8)) return hop({ x: M + CW, y: SY + 205 }, be, b(17.2), b(17.6));
+    return hop(be, { x: M + 13, y: SY + 620 + 22 }, b(19.8), b(20.2));
+  },
+};
+
+// ---- 05 AI disclosure ----
+EPS.ai = {
+  n: "05", slug: "ai-disclosure", name: "AI 披露文案", q: ["Etsy 的 AI 披露，", "要怎么写？"], tease: "AI?",
+  subs: [
+    [1, 4.5, "用 AI 创作的商品，Etsy 要求在描述里披露。", "Etsy asks you to disclose AI-created items in the description."],
+    [5, 11, "AI 只写了标题、修了背景？按实际制作说明。", "AI only wrote the title or cleaned a photo? Describe how it's made."],
+    [11.5, 17, "AI 参与了设计，就用这句英文披露。", "AI helped with the design? Use this line."],
+    [17.5, 23.5, "只写真实做过的事，不替你编制作过程。", "Only what you actually did. Nothing invented."],
+  ],
+  foot: "Etsy 创造力标准：用 AI 创作的商品需在描述中披露（etsy.com/legal/creativity）。英文为网站工具输出。",
+  build(root) {
+    const S = {};
+    S.qc = el("div", "card", root, `<div class="lbl" style="margin-bottom:22px">AI 参与了商品或所售设计的创作吗？</div>`); pos(S.qc, M, SY); Object.assign(S.qc.style, { width: CW + "px", padding: "30px 34px" });
+    S.opt = [["否", "只帮写标题 / 修图片背景"], ["是", "参与了商品或设计"]].map(([a, d], i) => { const o = el("div", "pillopt", S.qc, `<i></i><span style="color:#f4f4f5">${a}</span><span style="font-size:24px;font-weight:450">${d}</span>`); o.style.marginTop = i ? "14px" : "0"; return o; });
+    S.r1 = el("div", "card", root, `<div class="lbl" style="margin-bottom:16px">中文提示</div><div style="font-size:34px;font-weight:560;line-height:1.4">不要写成商品由 AI 创作。<br><span style="color:#a1a1aa">请按商品的实际制作过程说明。</span></div>`);
+    pos(S.r1, M, SY + 290); Object.assign(S.r1.style, { width: CW + "px", padding: "28px 34px" });
+    S.r2 = el("div", "card", root, `<div class="lbl" style="margin-bottom:16px;color:#c8ff00">英文披露 · 复制</div><div class="en" style="font-size:38px;font-weight:540;line-height:1.35"></div>`);
+    pos(S.r2, M, SY + 290); Object.assign(S.r2.style, { width: CW + "px", padding: "28px 34px", borderColor: "rgba(200,255,0,.45)" });
+    S.line = "This item includes a design created with the assistance of AI.";
+    S.en = $(".en", S.r2);
+    S.desc = el("div", "card", root, `<div class="lbl" style="margin-bottom:18px">LISTING DESCRIPTION</div>
+      <div style="height:16px;width:78%;border-radius:8px;background:rgba(255,255,255,.08)"></div><div style="height:16px;width:64%;border-radius:8px;background:rgba(255,255,255,.08);margin-top:14px"></div>
+      <div class="ins" style="margin-top:18px;font:500 24px/1.4 var(--mono);color:#c8ff00;padding:12px 16px;border-radius:10px;background:rgba(200,255,0,.08);border:1px solid rgba(200,255,0,.4)">${"This item includes a design created with the assistance of AI."}</div>
+      <div style="height:16px;width:70%;border-radius:8px;background:rgba(255,255,255,.08);margin-top:18px"></div>`);
+    pos(S.desc, M, SY + 480); Object.assign(S.desc.style, { width: CW + "px", padding: "26px 34px" });
+    S.note = el("div", "lbl", root, "不代替商品事实、原创资格或生产伙伴披露"); pos(S.note, M, SY + 744); S.note.style.letterSpacing = ".04em"; S.note.style.fontSize = "22px";
+    S.pick1 = b(5.5); S.pick2 = b(11.5); S.ty0 = b(12.2); S.ty1 = b(15.5);
+    return S;
+  },
+  measure(S) {
+    // caret positions while the English line types
+    S.en.textContent = ""; S.cps = [];
+    const probe = el("span", "", S.en);
+    for (let i = 0; i <= S.line.length; i++) { probe.textContent = S.line.slice(0, i); const r = probe.getClientRects(); const last = r[r.length - 1]; S.cps.push(last ? { x: last.right, y: (last.top + last.bottom) / 2 } : { x: M + 34, y: SY + 290 + 80 }); }
+    probe.remove();
+    const o = S.opt.map((e) => e.getBoundingClientRect()); S.optP = o.map((r) => ({ x: r.left + 41, y: r.top + r.height / 2 }));
+  },
+  seek(S, t) {
+    const out = mechOut(t);
+    fadeUp(S.qc, A.mech, t, 20); S.qc.style.opacity *= 1 - out;
+    const sel = t >= S.pick2 ? 1 : t >= S.pick1 ? 0 : -1;
+    S.opt.forEach((o, i) => { const on = sel === i; o.style.borderColor = on ? "rgba(200,255,0,.8)" : ""; o.style.background = on ? "rgba(200,255,0,.07)" : "";
+      $("i", o).style.background = on ? "#c8ff00" : ""; $("i", o).style.borderColor = on ? "#c8ff00" : ""; });
+    const r1 = t >= S.pick1 && t < S.pick2; show(S.r1, r1); if (r1) { fadeUp(S.r1, S.pick1, t, 20); }
+    const r2 = t >= S.pick2; show(S.r2, r2); if (r2) { fadeUp(S.r2, S.pick2, t, 20); S.r2.style.opacity *= 1 - out; }
+    const n = Math.round(S.line.length * seg(t, S.ty0, S.ty1)); S.en.textContent = S.line.slice(0, n);
+    fadeUp(S.desc, b(17.5), t, 30); S.desc.style.opacity *= 1 - out;
+    const ik = eOut(seg(t, b(18.3), b(18.3) + .5)); const ins = $(".ins", S.desc); ins.style.opacity = ik; ins.style.transform = `translateX(${(1 - ik) * -30}px)`;
+    ins.style.boxShadow = `0 0 ${40 * Math.exp(-Math.max(0, t - b(18.3)) / .5)}px rgba(200,255,0,.5)`;
+    S.note.style.display = "none";
+  },
+  dot(S, t) {
+    const hop = (p, q, t0, t1) => { const u = inOut3(seg(t, t0, t1)); return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * 50 }; };
+    const above = { x: S.optP[0].x, y: S.optP[0].y - 60 };
+    if (t < S.pick1 - .3) return above;
+    if (t < S.pick2 - .3) return hop(above, S.optP[0], S.pick1 - .3, S.pick1);
+    if (t < S.ty0) return hop(S.optP[0], S.optP[1], S.pick2 - .3, S.pick2);
+    const n = Math.round(S.line.length * seg(t, S.ty0, S.ty1));
+    const c = S.cps[Math.max(0, n)] || S.cps[S.cps.length - 1];
+    if (t < b(18)) return { x: c.x + 14, y: c.y };
+    const insP = { x: M + 34 + 4, y: SY + 480 + 140 };
+    return hop({ x: S.cps[S.cps.length - 1].x + 14, y: S.cps[S.cps.length - 1].y }, insP, b(18), b(18.4));
+  },
+};
+
+// ======================= shell =======================
+const E = EPS[EP];
+const eye = el("div", "eyebrow", col, `FREE ETSY TOOLS · ${E.n}/05`); pos(eye, M, 130);
+const head = el("div", "", col); pos(head, M, 166);
+const hl = E.q.map((l) => el("div", "h2wrap", head, `<span class="h2">${l}</span>`));
+const tease = el("div", "tease", col, E.tease); pos(tease, M - 10, 560);
+const root = el("div", "", col); root.id = "root"; root.style.inset = "0";
+const S = E.build(root);
+const foot = el("div", "foot", col, E.foot); pos(foot, M, 1236);
+// CTA
+const cEye = el("div", "eyebrow", col, "FREE · NO SIGN-UP"); pos(cEye, M, 540);
+const cT = el("div", "h2wrap", col, `<span class="h2 etitle">${E.name}</span>`); pos(cT, M, 582);
+const cL = el("div", "", col, "免费，不用登录。"); pos(cL, M, 745); Object.assign(cL.style, { fontSize: "44px", fontWeight: 600, color: "#d4d4d8" });
+const cEn = el("div", "", col, "Free. No sign-up."); pos(cEn, M, 808); Object.assign(cEn.style, { fontSize: "28px", color: "#8a8a93" });
+const url = el("div", "url", col, `<span>openaigrowth.com</span><span style="font-size:30px">→</span><i class="sheen"></i>`); pos(url, M, 900);
+const upath = el("div", "path", col, `/tools/${E.slug}`); pos(upath, M + 6, 1006);
+const ring = el("div", "", col); ring.id = "ring";
+const dot = el("div", "", col); dot.id = "dot";
+const subs = E.subs.concat([[24.5, 29.6, `${E.name}，免费，不用登录。`, "Free. No sign-up."]]).map(([f, to, zh, en]) => {
+  const box = el("div", "sub", $("#subs"), `<div class="subline zh"><span>${zh}</span></div><div class="subline en"><span>${en}</span></div>`);
+  return { from: b(f), to: b(to), box, zh: $(".zh span", box), en: $(".en span", box) };
+});
+const G = {};
+function measure() {
+  const tw = tease.offsetWidth; G.tease = { x: M - 10 + tw + 26, y: 560 + 230 * .78, r: 18 };
+  const et = $(".etitle", cT); G.period = { x: M + et.offsetWidth + 16 + 14, y: 582 + et.offsetHeight * .74, r: 14 };
+  E.measure(S);
+}
+function dotAt(t) {
+  if (t < A.hookOut) return { ...G.tease };
+  const m0 = E.dot(S, A.mech);
+  if (t < A.mech) { const u = inOut3(seg(t, A.hookOut, A.mech)); return { x: lerp(G.tease.x, m0.x, u), y: lerp(G.tease.y, m0.y, u) - Math.sin(Math.PI * u) * 120, r: lerp(18, 11, u) }; }
+  if (t < A.ctaOut) return { ...E.dot(S, t), r: 11 };
+  const from = E.dot(S, A.ctaOut); const u = inOut3(seg(t, A.ctaOut, A.ctaTitle + .2));
+  return { x: lerp(from.x, G.period.x, u), y: lerp(from.y, G.period.y, u) - Math.sin(Math.PI * u) * 140, r: lerp(11, 14, u) };
+}
+const glow = $("#glow"), gridLit = $("#gridLit"), grid = $("#grid");
+function seek(t) {
+  const hk = in3(seg(t, A.ctaOut - .1, A.ctaOut + .3));
+  [eye, ...hl].forEach((e, i) => { const k = in3(seg(t, A.ctaOut - .1 + i * .04, A.ctaOut + .3 + i * .04)); e.style.opacity = 1 - k; e.style.transform = `translateY(${-k * 60}px)`; });
+  show(head, t < A.cta + .3); show(eye, t < A.cta + .3);
+  const tk = in3(seg(t, A.hookOut - .05, A.hookOut + .35)); show(tease, t < A.mech); tease.style.opacity = 1 - tk; tease.style.transform = `translateY(${-tk * 60}px) scale(${1 - .05 * tk})`;
+  show(root, t >= A.mech - .05 && t < A.cta + .3);
+  if (t >= A.mech - .05) E.seek(S, t);
+  show(foot, t >= A.mech && t < A.cta + .3); foot.style.opacity = eOut(seg(t, A.mech + .3, A.mech + .9)) * (1 - hk);
+  // CTA
+  const on = t >= A.ctaTitle - .2; [cEye, cT, cL, cEn, url, upath].forEach((e) => show(e, on));
+  if (on) {
+    fadeUp(cEye, A.ctaTitle - .1, t, 14);
+    const wu = eOut(seg(t, A.ctaTitle - .05, A.ctaTitle + BEAT * 1.6)); $(".etitle", cT).style.clipPath = `inset(-20px ${(1 - wu) * 100}% -20px 0)`;
+    fadeUp(cL, A.ctaLine, t, 18); fadeUp(cEn, A.ctaLine + .2, t, 12);
+    const uk = spring(t - A.url, 2.4, .7); url.style.opacity = t >= A.url ? 1 : 0; url.style.transform = `translateY(${(1 - uk) * 40}px) scale(${.92 + .08 * uk})`;
+    $(".sheen", url).style.transform = `translateX(${-110 + 220 * cubic(seg(t, A.url + .6, A.url + 1.5))}%)`;
+    fadeUp(upath, A.url + .25, t, 12);
+  }
+  // dot
+  const d = dotAt(t); dot.style.width = dot.style.height = d.r * 2 + "px"; dot.style.transform = `translate(${d.x - d.r}px,${d.y - d.r}px)`;
+  const gl = t > A.ctaOut ? 1.6 : 1;
+  dot.style.boxShadow = `0 0 ${d.r * 2.2}px ${d.r * .5}px rgba(200,255,0,.75), 0 0 ${d.r * 7 * gl}px ${d.r * 1.5}px rgba(200,255,0,.28)`;
+  const rings = [b(.5), b(2), ...(E.events ? E.events() : []), A.ctaTitle + .2];
+  let rr = 0, ro = 0; for (const r0 of rings) { const u = seg(t, r0, r0 + .55); if (u > 0 && u < 1) { rr = d.r + 6 + 60 * eOut(u); ro = (1 - u) * .9; } }
+  show(ring, ro > 0); if (ro > 0) { ring.style.width = ring.style.height = rr * 2 + "px"; ring.style.transform = `translate(${d.x - rr}px,${d.y - rr}px)`; ring.style.opacity = ro; }
+  glow.style.background = `radial-gradient(circle ${380 * gl}px at ${d.x}px ${d.y}px, rgba(200,255,0,.13), transparent 70%)`;
+  const m = `radial-gradient(circle ${240 * gl}px at ${d.x}px ${d.y}px, #000, transparent 72%)`; gridLit.style.webkitMaskImage = gridLit.style.maskImage = m;
+  grid.style.webkitMaskImage = grid.style.maskImage = `radial-gradient(ellipse 75% 60% at 50% 40%, #000 15%, transparent 78%)`;
+  const sb = in3(seg(t, A.ctaOut - .2, A.ctaOut + .2)); show($("#sitebar"), t < A.ctaOut + .2); $("#sitebar").style.opacity = 1 - sb;
+  subs.forEach((s) => { const inK = eOut(seg(t, s.from, s.from + .55)), outK = in3(seg(t, s.to - .36, s.to)); s.box.style.visibility = t >= s.from && t <= s.to ? "visible" : "hidden";
+    s.zh.style.transform = `translateY(${(1 - inK) * 110 - outK * 110}%)`; const inE = eOut(seg(t, s.from + .1, s.from + .65)); s.en.style.transform = `translateY(${(1 - inE) * 110 - outK * 110}%)`; });
+}
+window.seek = seek;
+window.motion = (t, dt = 1 / FPS) => { const a = dotAt(t), c = dotAt(t + dt); let d = Math.hypot(c.x - a.x, c.y - a.y);
+  if ((t > A.hookOut - .1 && t < A.mech + .3) || (t > A.ctaOut - .15 && t < A.cta + .5)) d = Math.max(d, 24); return d; };
+window.ready = (async () => {
+  await document.fonts.load('500 30px JBM'); await document.fonts.load('400 30px JBM');
+  await document.fonts.load('600 40px Geist'); await document.fonts.load('600 40px "Noto Sans CJK SC"');
+  await document.fonts.ready;
+  measure(); seek(+(Q.get("t") || 0));
+  return { W, H, duration: DUR, fps: FPS };
+})();
+</script>
+</body>
+</html>
