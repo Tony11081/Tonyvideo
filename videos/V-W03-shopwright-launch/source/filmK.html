@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Shopwright · launch film · 30s</title>
+<style>
+@font-face { font-family: Geist; src: url(fonts/Geist-Variable.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+:root { --lime: #c8ff00; --warn: #ffb224; --sans: Geist, "Noto Sans CJK SC", sans-serif; --mono: JBM, ui-monospace, "Noto Sans CJK SC", monospace; }
+* { box-sizing: border-box; margin: 0; }
+html, body { background: #000; overflow: hidden; }
+#s { position: relative; overflow: hidden; background: #000; color: #f4f4f5; font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+.abs { position: absolute; }
+.full { position: absolute; inset: 0; }
+.shot { position: absolute; inset: 0; display: none; }
+.cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.grain { opacity: .1; mix-blend-mode: overlay; pointer-events: none; inset: -120px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.vig { background: radial-gradient(ellipse 80% 65% at 50% 48%, transparent 40%, rgba(0,0,0,.85) 100%); pointer-events: none; }
+.chrome { background: linear-gradient(180deg, #fff 0%, #f4f4f5 40%, #8f8f97 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.streak { position: absolute; height: 6px; border-radius: 50%; filter: blur(3px);
+  background: linear-gradient(90deg, transparent, rgba(160,220,255,.25) 20%, rgba(200,255,0,.9) 50%, rgba(160,220,255,.25) 80%, transparent); }
+.streak.soft { height: 60px; filter: blur(30px); opacity: .35; }
+.dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: #f6ffd6;
+  box-shadow: 0 0 18px 6px rgba(200,255,0,.95), 0 0 80px 30px rgba(200,255,0,.45), 0 0 260px 90px rgba(200,255,0,.16); }
+.chapter { position: absolute; font-weight: 680; letter-spacing: -.04em; line-height: 1; }
+.chapter .w { display: block; overflow: hidden; padding-bottom: .08em; }
+.chapter .w span { display: inline-block; }
+.chapter small { display: block; font-size: 30px; font-weight: 450; letter-spacing: .01em; color: #8a8a93; margin-top: 22px; }
+.eyebrow { font: 500 20px/1 var(--mono); letter-spacing: .32em; color: #6b6b73; white-space: nowrap; }
+.sub { position: absolute; left: 0; right: 0; text-align: center; }
+.sub .zh { font-size: 46px; font-weight: 560; letter-spacing: .02em; color: #e4e4e7; line-height: 1.35; }
+.sub .en { font-size: 26px; font-weight: 420; color: #8a8a93; margin-top: 12px; letter-spacing: .02em; }
+.land .sub .zh { font-size: 38px; } .land .sub .en { font-size: 22px; margin-top: 8px; }
+/* glass console */
+.scene { position: absolute; }
+.panel { position: absolute; width: 920px; border-radius: 28px;
+  background: linear-gradient(160deg, rgba(40,40,46,.75), rgba(8,8,10,.92) 60%); border: 1px solid rgba(255,255,255,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 80px 160px -40px rgba(0,0,0,1), -30px 0 80px -30px rgba(200,255,0,.25);
+  font-family: var(--mono); }
+.panel.refl { -webkit-box-reflect: below 26px linear-gradient(transparent 62%, rgba(255,255,255,.13)); }
+.panel .bar { display: flex; align-items: center; gap: 12px; height: 70px; padding: 0 30px; border-bottom: 1px solid rgba(255,255,255,.08); color: #8a8a93; font-size: 20px; }
+.panel .bar i { width: 13px; height: 13px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.panel .bar b { margin-left: auto; color: #ffb224; font-weight: 500; }
+.panel .bd { padding: 26px 34px 34px; }
+.lbl { font-size: 16px; letter-spacing: .22em; color: #6b6b73; margin: 6px 0 12px; }
+.row { display: flex; height: 50px; align-items: center; font-size: 27px; white-space: nowrap; }
+.row span:first-child { width: 190px; color: #77777f; }
+.row span:first-child b { color: var(--lime); font-weight: 400; margin-right: 12px; }
+.flag { color: var(--warn); }
+.card { margin-top: 14px; padding: 20px 24px; border: 1px solid rgba(255,255,255,.14); border-radius: 16px; background: rgba(255,255,255,.03); }
+.meta { display: flex; justify-content: space-between; font-size: 17px; letter-spacing: .16em; color: #77777f; margin-bottom: 12px; }
+.meta em { font-style: normal; color: #f4f4f5; letter-spacing: .04em; }
+.meta em i { font-style: normal; color: var(--lime); }
+.ttl { font-family: var(--sans); font-size: 33px; font-weight: 540; line-height: 1.3; min-height: 86px; }
+.caret { display: inline-block; width: 16px; height: 16px; border-radius: 50%; vertical-align: middle; margin-left: 6px; background: #f6ffd6;
+  box-shadow: 0 0 10px 4px rgba(200,255,0,.9), 0 0 50px 16px rgba(200,255,0,.35); }
+/* tags plane */
+.chip { position: absolute; height: 64px; padding: 0 24px; display: flex; align-items: center; border-radius: 14px; white-space: nowrap;
+  font: 400 26px/1 var(--mono); color: #e4e4e7; border: 1px solid rgba(255,255,255,.2); background: rgba(20,20,22,.9); }
+.count { font: 500 120px/1 var(--mono); letter-spacing: -.04em; }
+.count i { font-style: normal; color: var(--lime); }
+.count span { color: #55555c; }
+/* profit */
+.pseg { position: absolute; top: 0; height: 90px; border-radius: 6px; }
+.amt { font-size: 130px; font-weight: 680; letter-spacing: -.04em; white-space: nowrap; line-height: 1.05;
+  background: linear-gradient(180deg,#f0ffb0,#c8ff00 60%,#90b800); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.amt.w { background: linear-gradient(180deg, #fff 0%, #f4f4f5 40%, #8f8f97 100%); -webkit-background-clip: text; background-clip: text; }
+.plab { position: absolute; font: 500 22px/1 var(--mono); white-space: nowrap; }
+/* pipeline */
+.node { width: 110px; height: 110px; border-radius: 28px; display: grid; place-items: center; font: 500 34px/1 var(--mono); background: #0a0a0b; }
+.nl { margin-top: 28px; font-size: 38px; font-weight: 560; white-space: nowrap; }
+/* montage */
+.bcard { position: absolute; border-radius: 22px; border: 1px solid rgba(255,255,255,.16); background: #0c0c0d; padding: 24px 28px; display: flex; flex-direction: column; justify-content: space-between; }
+.bcard em { font: 500 18px/1 var(--mono); letter-spacing: .18em; font-style: normal; color: #55555c; }
+.bcard strong { font-size: 38px; font-weight: 560; }
+.bcard.sk { border-color: rgba(200,255,0,.5); } .bcard.sk em { color: var(--lime); }
+.pill { position: absolute; display: flex; align-items: center; justify-content: space-between; border-radius: 999px; border: 1px solid rgba(255,255,255,.16);
+  padding: 0 40px 0 56px; font-size: 40px; font-weight: 540; color: #d4d4d8; background: rgba(255,255,255,.02); }
+.pill.on { border-color: rgba(200,255,0,.7); background: rgba(200,255,0,.06); color: #fff; box-shadow: 0 0 50px rgba(200,255,0,.25); }
+.pill b { font: 500 26px/1 var(--mono); color: var(--lime); }
+.url { display: inline-flex; align-items: center; gap: 14px; height: 80px; padding: 0 40px; border-radius: 999px; border: 1px solid rgba(200,255,0,.5); position: relative; overflow: hidden;
+  color: var(--lime); font: 560 32px/1 Geist, sans-serif; box-shadow: 0 0 60px -10px rgba(200,255,0,.45), inset 0 0 30px rgba(200,255,0,.08); }
+.url .sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(200,255,0,.35) 48%, transparent 64%); }
+#tag { position: absolute; font: 500 20px/1 var(--mono); letter-spacing: .16em; color: #55555c; white-space: nowrap; }
+#tag b { color: #8a8a93; font-weight: 500; }
+.lbar { position: absolute; left: 0; right: 0; background: #000; z-index: 30; }
+</style>
+</head>
+<body>
+<div id="s"></div>
+<script src="timelineK.js"></script>
+<script>
+"use strict";
+const Q = new URLSearchParams(location.search);
+const W = +(Q.get("w") || 1080), H = +(Q.get("h") || 1920);
+const LAND = W > H;
+const A = T.at, BEAT = T.BEAT, C = T.copy;
+const $ = (q, r = document) => r.querySelector(q);
+const el = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const S0 = $("#s"); S0.style.width = W + "px"; S0.style.height = H + "px"; if (LAND) S0.classList.add("land");
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const seg = (t, t0, t1) => clamp((t - t0) / (t1 - t0));
+const eOut = (u) => (u >= 1 ? 1 : 1 - Math.pow(2, -10 * u));
+const inOut3 = (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const out3 = (u) => 1 - Math.pow(1 - u, 3);
+const in3 = (u) => u * u * u;
+const cubic = (u) => u * u * (3 - 2 * u);
+function spring(t, f = 2.4, z = .72) { if (t <= 0) return 0; const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); }
+const show = (e, on) => { e.style.visibility = on ? "visible" : "hidden"; };
+const pos = (e, x, y) => { e.style.left = x + "px"; e.style.top = y + "px"; };
+const SH = Object.fromEntries(T.shots.map((s) => [s.id, s]));
+
+// Frame: vertical uses the full frame; horizontal is a 2.39:1 band with the subtitles in the lower bar.
+const BH = LAND ? Math.round((H - W / 2.39) / 2) : 0;
+const M = LAND ? 150 : 80;
+const shots = {};
+for (const s of T.shots) { const d = el("div", "shot", S0); const cam = el("div", "cam", d); shots[s.id] = { d, cam, ...s }; }
+const bg = (sh, css) => { const b = el("div", "full", shots[sh].d); b.style.background = css; shots[sh].d.insertBefore(b, shots[sh].cam); return b; };
+
+// chapter heading (rises out of a mask)
+function chapter(sh, word, small, x, y, size) {
+  const c = el("div", "chapter", shots[sh].cam, `<span class="w"><span class="chrome">${word}</span></span><small>${small}</small>`);
+  c.style.fontSize = size + "px"; pos(c, x, y); return c;
+}
+function chapterAt(c, t, t0) {
+  const k = out3(seg(t, t0 + .1, t0 + .9)); $(".w span", c).style.transform = `translateY(${(1 - k) * 105}%)`;
+  const s = eOut(seg(t, t0 + .5, t0 + 1.2)); $("small", c).style.opacity = s; $("small", c).style.transform = `translateY(${(1 - s) * 14}px)`;
+}
+
+// ---------- shot: open ----------
+const OY = LAND ? H / 2 - 40 : 820;
+const open = shots.open;
+bg("open", `radial-gradient(ellipse 60% 30% at 50% ${OY / H * 100}%, rgba(200,255,0,.10), transparent 70%)`);
+const oSoft = el("div", "streak soft", open.cam); oSoft.style.left = "0"; oSoft.style.right = "0"; oSoft.style.top = (OY - 30) + "px";
+const oStreak = el("div", "streak", open.cam); oStreak.style.top = (OY - 3) + "px";
+const oDot = el("div", "dot", open.cam);
+
+// ---------- shot: name ----------
+const name = shots.name;
+const NY = LAND ? H / 2 - 130 : 760, NS = LAND ? 210 : 168;
+bg("name", `radial-gradient(ellipse 70% 25% at 50% ${(NY + NS * .55) / H * 100}%, rgba(200,255,0,.07), transparent 70%)`);
+const nEye = el("div", "eyebrow abs", name.cam, "FOR ETSY SELLERS");
+const mk = (cls) => { const e = el("div", "abs " + cls, name.cam, "Shopwright"); Object.assign(e.style, { left: 0, right: 0, textAlign: "center", top: NY + "px", fontWeight: 720, fontSize: NS + "px", letterSpacing: "-.05em", lineHeight: 1.1, whiteSpace: "nowrap" }); return e; };
+const nBase = mk(""); nBase.style.color = "#141416";
+const nLit = mk("chrome");
+const nHot = mk(""); nHot.style.background = "linear-gradient(180deg,#fff,#f6ffd6 50%,#e6ff80)"; nHot.style.webkitBackgroundClip = "text"; nHot.style.backgroundClip = "text"; nHot.style.color = "transparent";
+const nStreak = el("div", "streak", name.cam); nStreak.style.top = (NY + NS * .62) + "px";
+const nSub = el("div", "abs", name.cam, "Etsy 卖家工具站"); Object.assign(nSub.style, { left: 0, right: 0, textAlign: "center", top: (NY + NS * 1.42) + "px", fontSize: (LAND ? 48 : 44) + "px", fontWeight: 540, color: "#a1a1aa", letterSpacing: ".06em" });
+const nDot = el("div", "dot", name.cam);
+
+// ---------- shot: title ----------
+const ti = shots.title;
+bg("title", `radial-gradient(ellipse 70% 40% at ${LAND ? 70 : 30}% 55%, rgba(200,255,0,.10), transparent 70%), radial-gradient(ellipse 50% 30% at 85% 40%, rgba(150,200,255,.06), transparent 70%)`);
+const tiCh = chapter("title", "标题。", "140 字符以内，不确定的先标出来。", M, LAND ? BH + 110 : 200, LAND ? 130 : 150);
+const panelHTML = () => `<div class="bar"><i></i><i></i><i></i><span style="margin-left:14px">skill/listing · run 0428</span><b>● running</b></div>
+  <div class="bd"><div class="lbl">INPUT</div>
+  <div class="row"><span><b>›</b>product</span><span>Maple cake server set</span></div>
+  <div class="row"><span><b>›</b>process</span><span>Laser engraving</span></div>
+  <div class="row"><span><b>›</b>options</span><span>2 fonts · 3 woods</span></div>
+  <div class="row"><span><b>›</b>unknown</span><span class="flag">Blade steel grade</span></div>
+  <div class="lbl" style="margin-top:22px">OUTPUT</div>
+  <div class="card"><div class="meta"><span>TITLE</span><em><i class="n">0</i>/140</em></div><p class="ttl"><span class="tx"></span><span class="caret"></span></p></div>
+  <div class="card"><div class="meta"><span>TAGS</span><em><i>0</i>/13</em></div><div style="height:120px"></div></div></div>`;
+const tiScene = el("div", "scene", ti.cam); Object.assign(tiScene.style, { left: 0, top: 0, width: W + "px", height: H + "px", perspective: "1800px", perspectiveOrigin: "50% 55%" });
+const PX0 = LAND ? 820 : 120, PY0 = LAND ? BH + 70 : 600;
+const pBlur = el("div", "panel refl", tiScene, panelHTML()); pos(pBlur, PX0, PY0); pBlur.style.filter = "blur(7px)"; pBlur.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,.25)";
+const pSharp = el("div", "panel", tiScene, panelHTML()); pos(pSharp, PX0, PY0);
+pSharp.style.webkitMaskImage = "linear-gradient(180deg,transparent 46%,#000 53%,#000 67%,transparent 75%)";
+$(".caret", pBlur).style.visibility = "hidden";
+const tiSweep = el("div", "abs", ti.cam); tiSweep.style.display = "none";
+
+// ---------- shot: tags ----------
+const tg = shots.tags;
+bg("tags", `radial-gradient(ellipse 70% 40% at 50% 58%, rgba(200,255,0,.08), transparent 70%)`);
+const tgCh = chapter("tags", "标签。", "按 Etsy 上限，写满 13 个。", M, LAND ? BH + 110 : 200, LAND ? 130 : 150);
+const tgScene = el("div", "scene", tg.cam); Object.assign(tgScene.style, { left: 0, top: 0, width: W + "px", height: H + "px", perspective: "1500px", perspectiveOrigin: LAND ? "68% 30%" : "50% 30%" });
+const plane = el("div", "abs", tgScene); Object.assign(plane.style, { left: (LAND ? 820 : 70) + "px", top: (LAND ? BH + 150 : 640) + "px", width: "940px", height: "600px", transformStyle: "preserve-3d" });
+const chipsEl = C.tags.map((t) => el("div", "chip", plane, t));
+const tgCount = el("div", "count abs", tg.cam, `<i>0</i><span>/13</span>`); pos(tgCount, LAND ? M : M, LAND ? BH + 420 : 1240);
+const tgDot = el("div", "dot", tg.cam);
+
+// ---------- shot: profit ----------
+const pr = shots.profit;
+bg("profit", `radial-gradient(ellipse 80% 35% at ${LAND ? 66 : 50}% 60%, rgba(200,255,0,.09), transparent 70%)`);
+const prCh = chapter("profit", "利润。", "每一笔费用，都算清。", M, LAND ? BH + 110 : 200, LAND ? 130 : 150);
+const BW = 920, PXU = BW / 30;
+const prScene = el("div", "scene", pr.cam); Object.assign(prScene.style, { left: (LAND ? 850 : 80) + "px", top: (LAND ? BH + 300 : 880) + "px", width: BW + "px", height: "200px", perspective: "1400px", perspectiveOrigin: "40% -40%" });
+const prPlane = el("div", "abs", prScene); Object.assign(prPlane.style, { inset: 0, transform: "rotateX(48deg) rotateZ(-4deg)", transformStyle: "preserve-3d" });
+let xr = BW;
+const segs = C.cuts.map((c) => { xr -= c.usd * PXU; const e = el("div", "pseg", prPlane); e.style.left = xr + "px"; e.style.width = (c.usd * PXU - 2) + "px"; return { ...c, e, x: xr, w: c.usd * PXU }; });
+const PROFIT_W = xr;
+const prLime = el("div", "pseg", prPlane); Object.assign(prLime.style, { left: 0, borderRadius: "14px 6px 6px 14px", background: "linear-gradient(180deg,#e2ff6a,#c8ff00 55%,#9fd000)" });
+const prDot = el("div", "dot", prPlane);
+const prLab = el("div", "abs", pr.cam, `$30.00 ORDER → WHAT'S LEFT`); Object.assign(prLab.style, { font: "500 24px/1 var(--mono)", color: "#6b6b73", letterSpacing: ".18em" }); pos(prLab, LAND ? M : 80, LAND ? BH + 430 : 1120);
+const prAmt = el("div", "abs", pr.cam); pos(prAmt, LAND ? M - 6 : 74, LAND ? BH + 470 : 1160); prAmt.style.height = "150px"; prAmt.style.width = "800px"; prAmt.style.overflow = "hidden";
+const prA = el("div", "amt w abs", prAmt), prB = el("div", "amt w abs", prAmt);
+const prPct = el("div", "abs", pr.cam, "利润率 30.5%"); Object.assign(prPct.style, { font: "500 30px/1 var(--mono)", color: "#c8ff00" }); pos(prPct, LAND ? M : 80, LAND ? BH + 620 : 1310);
+const prFoot = el("div", "abs", pr.cam, "示例：售价 $25 + 买家运费 $5 · 收款地中国 · 汇率 7.10 · 成本 ¥40 / 包装 ¥5 / 物流 ¥70 · 网站利润计算器默认示例");
+Object.assign(prFoot.style, { font: "400 18px/1.5 var(--mono)", color: "#4a4a52", width: (LAND ? 1000 : 920) + "px" }); pos(prFoot, LAND ? 850 : 80, LAND ? H - BH - 70 : 1700);
+const segColor = { etsy: "#ffb224", fx: "#7c8db5", cost: "#5f5f68" };
+
+// ---------- shot: pipe ----------
+const pp = shots.pipe;
+bg("pipe", `radial-gradient(ellipse 70% 60% at 65% 60%, rgba(200,255,0,.10), transparent 70%), linear-gradient(180deg,#0b0c0a,#060606)`);
+const ppCh = chapter("pipe", "上架。", "从选品到上架，一条流水线。", M, LAND ? BH + 110 : 200, LAND ? 130 : 150);
+const ppScene = el("div", "scene", pp.cam); Object.assign(ppScene.style, { left: 0, top: 0, width: W + "px", height: H + "px", perspective: "1300px", perspectiveOrigin: LAND ? "55% 50%" : "20% 50%" });
+const ppRow = el("div", "abs", ppScene); Object.assign(ppRow.style, { left: (LAND ? 700 : 120) + "px", top: (LAND ? 480 : 860) + "px", transformOrigin: "0 50%", transformStyle: "preserve-3d" });
+const STEP = 330;
+const ppLine = el("div", "abs", ppRow); Object.assign(ppLine.style, { left: "55px", top: "54px", width: 6 * STEP + "px", height: "3px", background: "rgba(200,255,0,.16)" });
+const ppLit = el("div", "abs", ppRow); Object.assign(ppLit.style, { left: "55px", top: "54px", height: "3px", background: "#c8ff00", boxShadow: "0 0 20px rgba(200,255,0,.8)" });
+const ppNodes = C.pipeline.map((n, i) => { const w = el("div", "abs", ppRow, `<div class="node">${String(i + 1).padStart(2, "0")}</div><div class="nl">${n}</div>`); pos(w, i * STEP, 0); return w; });
+const ppDot = el("div", "dot", ppRow);
+
+// ---------- shot: montage ----------
+const mo = shots.montage;
+const moA = el("div", "abs", mo.cam), moB = el("div", "abs", mo.cam), moC = el("div", "abs", mo.cam);
+[moA, moB, moC].forEach((e) => { e.style.inset = "0"; });
+{ // A: workbench board (site's demo modules)
+  const bw = LAND ? 520 : 440, bh = 130, gx = 24, x0 = LAND ? (W - 2 * bw - gx) / 2 : (W - 2 * bw - gx) / 2, y0 = LAND ? BH + 170 : 640;
+  el("div", "eyebrow abs", moA, "ETSY WORKBENCH").style.cssText += `left:${x0}px;top:${y0 - 60}px`;
+  C.board.forEach(([k, n], i) => { const c = el("div", "bcard" + (k === "SKILL" ? " sk" : ""), moA, `<em>${k}</em><strong>${n}</strong>`);
+    Object.assign(c.style, { left: x0 + (i % 2) * (bw + gx) + "px", top: y0 + Math.floor(i / 2) * (bh + gx) + "px", width: bw + "px", height: bh + "px" }); });
+}
+{ // B: free tools with the two real check results
+  const pw = LAND ? 1000 : 920, x0 = (W - pw) / 2, y0 = LAND ? BH + 120 : 560;
+  el("div", "eyebrow abs", moB, "FREE ETSY TOOLS · NO SIGN-UP").style.cssText += `left:${x0}px;top:${y0 - 60}px`;
+  const badge = { 2: "74/140 ✓", 3: "13/13 ✓" };
+  C.tools.forEach((n, i) => { const p = el("div", "pill" + (badge[i] ? " on" : ""), moB, `<span>${n}</span>${badge[i] ? `<b>${badge[i]}</b>` : '<span style="color:#55555c">↗</span>'}`);
+    Object.assign(p.style, { left: x0 + "px", top: y0 + i * (LAND ? 96 : 112) + "px", width: pw + "px", height: (LAND ? 82 : 96) + "px" }); });
+}
+{ // C: the finished listing title
+  const x0 = LAND ? 360 : 80, y0 = LAND ? BH + 240 : 760, w = LAND ? 1200 : 920;
+  el("div", "eyebrow abs", moC, "TITLE · 74/140 ✓").style.cssText += `left:${x0}px;top:${y0 - 60}px;color:#c8ff00`;
+  const t = el("div", "abs", moC, C.title); Object.assign(t.style, { left: x0 + "px", top: y0 + "px", width: w + "px", fontSize: (LAND ? 64 : 58) + "px", fontWeight: 600, lineHeight: 1.18, letterSpacing: "-.02em" }); t.className += " chrome";
+}
+
+// ---------- shot: end ----------
+const en = shots.end;
+const EY = LAND ? H / 2 - 150 : 760, ES = LAND ? 180 : 150;
+const enGlow = bg("end", `radial-gradient(ellipse 60% 22% at 50% ${(EY + ES * .55) / H * 100}%, rgba(200,255,0,.07), transparent 70%)`);
+const enFlash = el("div", "full", en.d); enFlash.style.background = `radial-gradient(circle at 50% ${(EY + ES * .6) / H * 100}%, rgba(230,255,150,.9), rgba(200,255,0,.25) 25%, transparent 60%)`;
+const enWm = el("div", "abs chrome", en.cam, `<span id="wm">Shopwright</span>`); Object.assign(enWm.style, { left: 0, right: 0, textAlign: "center", top: EY + "px", fontWeight: 720, fontSize: ES + "px", letterSpacing: "-.05em", lineHeight: 1.1, whiteSpace: "nowrap", paddingRight: ES * .3 + "px" });
+const enL1 = el("div", "abs", en.cam, "免费 Etsy 工具，不用登录。"); Object.assign(enL1.style, { left: 0, right: 0, textAlign: "center", top: (EY + ES * 1.55) + "px", fontSize: "46px", fontWeight: 600, color: "#e4e4e7" });
+const enL2 = el("div", "abs", en.cam, "Free Etsy tools. No sign-up."); Object.assign(enL2.style, { left: 0, right: 0, textAlign: "center", top: (EY + ES * 1.55 + 66) + "px", fontSize: "28px", color: "#8a8a93" });
+const enUrl = el("div", "abs", en.cam, `<span class="url"><span>openaigrowth.com</span><i class="sheen"></i></span>`); Object.assign(enUrl.style, { left: 0, right: 0, textAlign: "center", top: (EY + ES * 1.55 + 180) + "px" });
+const enDot = el("div", "dot", en.cam);
+
+// ---------- global layers ----------
+const tagline = el("div", "", S0, `<b>Etsy 卖家工具站</b> · openaigrowth.com`); tagline.id = "tag";
+const subBox = el("div", "full", S0); subBox.style.pointerEvents = "none";
+const subs = T.subtitles.map((s) => { const b = el("div", "sub", subBox, `<div class="zh"><span style="display:inline-block">${LAND ? s.zh.replace("<br>", "") : s.zh}</span></div><div class="en">${s.en}</div>`); return { ...s, b }; });
+const black = el("div", "full", S0); black.style.background = "#000";
+if (LAND) { el("div", "lbar", S0).style.cssText += `top:0;height:${BH}px`; const lb = el("div", "lbar", S0); lb.style.cssText += `bottom:0;height:${BH}px`; S0.appendChild(subBox); S0.appendChild(tagline); subBox.style.zIndex = 31; tagline.style.zIndex = 31; }
+const vig = el("div", "full vig", S0), grain = el("div", "full grain", S0);
+
+// ---------- geometry after fonts ----------
+const G = {};
+function measure() {
+  nEye.style.left = (W / 2 - nEye.offsetWidth / 2) + "px"; nEye.style.top = (NY - 30) + "px";
+  const tw = (() => { const s = el("span", "", name.cam, "Shopwright"); Object.assign(s.style, { position: "absolute", fontWeight: 720, fontSize: NS + "px", letterSpacing: "-.05em", whiteSpace: "nowrap", visibility: "hidden" }); const w = s.offsetWidth; s.remove(); return w; })();
+  G.nameX0 = W / 2 - tw / 2; G.nameX1 = W / 2 + tw / 2;
+  const wm = $("#wm"); const r = wm.getBoundingClientRect(); const pr = S0.getBoundingClientRect();
+  G.endDot = { x: r.right - pr.left + ES * .1, y: EY + ES * 1.1 * .74 };
+  // tags: lay chips on the plane (wrap)
+  let x = 0, y = 0; G.chips = chipsEl.map((c) => { const w = c.offsetWidth; if (x + w > 940) { x = 0; y += 80; } const p = { x, y, w }; x += w + 14; return p; });
+  chipsEl.forEach((c, i) => pos(c, G.chips[i].x, G.chips[i].y));
+  subs.forEach((s) => { s.b.style.top = (LAND ? H - BH + (BH - s.b.offsetHeight) / 2 : 1520) + "px"; });
+  if (LAND) pos(tagline, W - M - tagline.offsetWidth, BH - 46); else pos(tagline, W / 2 - tagline.offsetWidth / 2, 1790);
+}
+
+// ---------- frame ----------
+function dip(t, sh, i = .18, o = .14) { return Math.max(1 - seg(t, sh.t0, sh.t0 + i), sh.id === "end" ? 0 : seg(t, sh.t1 - o, sh.t1)); }
+function dotStyle(e, x, y, r, glow = 1) { e.style.width = e.style.height = 2 * r + "px"; e.style.transform = `translate(${x - r}px,${y - r}px)`; e.style.opacity = glow; }
+let current = null;
+function seek(t) {
+  const sh = T.shots.find((s) => t >= s.t0 && t < s.t1) || T.shots[T.shots.length - 1];
+  for (const id in shots) shots[id].d.style.display = id === sh.id ? "block" : "none";
+  const u = seg(t, sh.t0, sh.t1);
+  const S = shots[sh.id];
+  let ex = dip(t, sh);
+  // grain moves every frame (deterministic)
+  const gf = Math.floor(t * 24); grain.style.transform = `translate(${(gf * 37) % 120 - 60}px,${(gf * 71) % 120 - 60}px)`;
+
+  if (sh.id === "open") {
+    ex = Math.max(1 - seg(t, 0, .25), seg(t, sh.t1 - .06, sh.t1) * 0);   // hard cut into the name on the hit
+    const z = lerp(1, 1.12, inOut3(u)); S.cam.style.transform = `scale(${z})`;
+    const b = spring(t - A.dotOn, 1.4, .8);
+    const breath = 1 + .06 * Math.sin(t * 2.2);
+    dotStyle(oDot, W / 2, OY, 9 * clamp(b, 0, 1.2) * breath, clamp(b * 2));
+    const sw = eOut(seg(t, A.dotOn + .1, A.dotOn + 2.2)) * (1 + .4 * seg(t, sh.t1 - .6, sh.t1));
+    oStreak.style.left = (W / 2 - sw * W * .42) + "px"; oStreak.style.width = (sw * W * .84) + "px"; oStreak.style.opacity = clamp(sw);
+    oSoft.style.opacity = .35 * clamp(sw);
+  }
+  if (sh.id === "name") {
+    ex = Math.max(0, seg(t, sh.t1 - .3, sh.t1));
+    const z = lerp(1.0, 1.06, u); S.cam.style.transform = `scale(${z})`;
+    const k = inOut3(seg(t, A.nameSweep, A.nameSweepEnd));
+    const x0 = G.nameX0 - 160, x1 = G.nameX1 + 220; const dx = lerp(x0, x1, k);
+    const lit = `linear-gradient(90deg,#000 ${dx - 60}px, transparent ${dx + 10}px)`;
+    nLit.style.webkitMaskImage = nLit.style.maskImage = lit;
+    nHot.style.webkitMaskImage = nHot.style.maskImage = `linear-gradient(90deg,transparent ${dx - 140}px,#000 ${dx - 20}px,#000 ${dx}px,transparent ${dx + 30}px)`;
+    nHot.style.opacity = 1 - seg(t, A.nameSweepEnd - .2, A.nameSweepEnd + .2);
+    const dy = NY + NS * .62;
+    dotStyle(nDot, dx, dy, 9, 1 - seg(t, A.nameSweepEnd - .25, A.nameSweepEnd + .1));
+    nStreak.style.left = (dx - 380) + "px"; nStreak.style.width = "760px"; nStreak.style.opacity = .85 * (1 - seg(t, A.nameSweepEnd - .25, A.nameSweepEnd + .3));
+    const ek = eOut(seg(t, A.nameEyebrow, A.nameEyebrow + .8)); nEye.style.opacity = ek; nEye.style.letterSpacing = lerp(.5, .32, ek) + "em";
+    const sk = eOut(seg(t, A.nameSub, A.nameSub + .9)); nSub.style.opacity = sk; nSub.style.transform = `translateY(${(1 - sk) * 20}px)`; nSub.style.filter = `blur(${(1 - sk) * 8}px)`;
+  }
+  if (sh.id === "title") {
+    S.cam.style.transform = `scale(${lerp(1.0, 1.05, u)}) translateY(${lerp(10, -10, u)}px)`;
+    chapterAt(tiCh, t, sh.t0);
+    const ry = lerp(-28, -14, inOut3(u)), rx = lerp(11, 7, u), tz = lerp(-120, -20, out3(u));
+    const sc = LAND ? .72 : .86;
+    const tr = `rotateX(${rx}deg) rotateY(${LAND ? -ry : ry}deg) rotateZ(${LAND ? -1.2 : 1.2}deg) translateZ(${tz}px) scale(${sc})`;
+    pBlur.style.transform = pSharp.style.transform = tr;
+    const po = eOut(seg(t, sh.t0, sh.t0 + .8)); pBlur.style.opacity = pSharp.style.opacity = po;
+    const n = Math.round(C.title.length * seg(t, T.typeT0, T.typeT1));
+    [pBlur, pSharp].forEach((p) => { $(".tx", p).textContent = C.title.slice(0, n); $(".n", p).textContent = String(n); });
+    const done = t >= T.typeT1 + .2; $(".bar b", pSharp).textContent = done ? "✓ validated" : "● running"; $(".bar b", pSharp).style.color = done ? "#c8ff00" : "#ffb224";
+    $(".bar b", pBlur).textContent = $(".bar b", pSharp).textContent; $(".bar b", pBlur).style.color = $(".bar b", pSharp).style.color;
+    const blink = t < T.typeT0 || t > T.typeT1 ? (Math.cos(Math.PI * 2 * t / BEAT) > 0 ? 1 : .3) : 1;
+    $(".caret", pSharp).style.opacity = blink;
+    const sx = lerp(-40, 140, seg(t, sh.t0 + .3, sh.t1)); tiSweep.style.background = `linear-gradient(100deg,transparent ${sx - 20}%,rgba(255,255,255,.07) ${sx}%,transparent ${sx + 12}%)`;
+  }
+  if (sh.id === "tags") {
+    S.cam.style.transform = `scale(${lerp(1.0, 1.05, u)})`;
+    chapterAt(tgCh, t, sh.t0);
+    plane.style.transform = `rotateX(${lerp(56, 46, inOut3(u))}deg) rotateZ(${lerp(-10, -6, u)}deg) translateZ(-40px)`;
+    let cnt = 0;
+    chipsEl.forEach((c, i) => { const t0 = T.tagTimes[i]; const s = spring(t - t0, 2.2, .78); const on = t >= t0 - .25;
+      const fall = clamp(1 - s, -0.1, 1); c.style.visibility = on ? "visible" : "hidden";
+      c.style.transform = `translateZ(${fall * 520}px)`; c.style.opacity = clamp(seg(t, t0 - .25, t0 + .05));
+      const fl = clamp(1 - (t - t0) / .5); c.style.borderColor = t >= t0 ? `rgba(200,255,0,${.2 + .7 * fl})` : "";
+      c.style.boxShadow = t >= t0 ? `0 0 ${40 * fl}px rgba(200,255,0,${.6 * fl}), 0 20px 40px -10px rgba(0,0,0,.9)` : "0 20px 40px -10px rgba(0,0,0,.9)";
+      if (t >= t0) cnt = i + 1; });
+    $("i", tgCount).textContent = String(cnt);
+    const ck = eOut(seg(t, sh.t0 + .4, sh.t0 + 1.1)); tgCount.style.opacity = ck;
+    const last = T.tagTimes.filter((x) => t >= x).pop();
+    const pulse = last ? Math.exp(-(t - last) / .18) : 0;
+    const cr = tgCount.getBoundingClientRect ? null : null;
+    dotStyle(tgDot, (LAND ? M : M) - 30, (LAND ? BH + 420 : 1240) + 64, 9 * (1 + .5 * pulse), ck);
+  }
+  if (sh.id === "profit") {
+    S.cam.style.transform = `scale(${lerp(1.0, 1.05, u)})`;
+    chapterAt(prCh, t, sh.t0);
+    prPlane.style.transform = `rotateX(${lerp(52, 44, inOut3(u))}deg) rotateZ(${lerp(-6, -3, u)}deg)`;
+    const bo = eOut(seg(t, sh.t0 + .2, sh.t0 + 1.0));
+    prScene.style.opacity = bo; prLab.style.opacity = bo;
+    let lw = BW, ai = -1;
+    segs.forEach((c, i) => { const t0 = T.cutTimes[i]; const k = spring(t - t0, 1.8, .8); const cut = t >= t0;
+      if (cut) { ai = i; lw = Math.min(lw, c.x); }
+      const off = Math.min(i, 5) + 1;
+      c.e.style.background = cut ? segColor[c.kind] : "#c8ff00";
+      c.e.style.transform = cut ? `translate3d(${k * off * 6}px,${-k * (26 + off * 12)}px,${k * (40 + off * 24)}px) rotateX(${-k * 10}deg)` : "";
+      c.e.style.opacity = cut ? lerp(1, .9, k) : 1;
+      c.e.style.boxShadow = cut ? `0 30px 60px -10px rgba(0,0,0,.9), 0 0 ${30 * Math.exp(-(t - t0) / .3)}px rgba(255,255,255,.6)` : "none";
+      c.e.style.visibility = cut ? "visible" : "hidden"; });
+    // the lime remainder shrinks a moment after each cut (spring)
+    let w = BW; segs.forEach((c, i) => { w -= c.w * clamp(spring(t - T.cutTimes[i], 2.6, .75), 0, 1.03); });
+    prLime.style.width = Math.max(w, PROFIT_W - 4) + "px";
+    const glow = t >= A.result ? Math.exp(-(t - A.result) / .5) : 0;
+    prLime.style.boxShadow = `0 0 ${60 + 60 * glow}px rgba(200,255,0,${.4 + .4 * glow})`;
+    dotStyle(prDot, Math.max(w, PROFIT_W) , 45, 10, bo);
+    const vals = ["$30.00", ...C.cuts.map((c) => c.after)];
+    const vi = ai + 1, ku = vi > 0 ? eOut(seg(t, T.cutTimes[ai], T.cutTimes[ai] + .3)) : 1;
+    prA.textContent = vals[vi]; prB.textContent = vi > 0 ? vals[vi - 1] : "";
+    prA.style.transform = `translateY(${(1 - ku) * 100}%)`; prB.style.transform = `translateY(${-ku * 100}%)`;
+    prA.classList.toggle("w", t < A.result); prAmt.style.opacity = bo;
+    prAmt.style.filter = glow > .01 ? `drop-shadow(0 0 ${30 * glow}px rgba(200,255,0,${.7 * glow}))` : "";
+    const pk = eOut(seg(t, A.result + .1, A.result + .6)); prPct.style.opacity = pk; prPct.style.transform = `translateY(${(1 - pk) * 12}px)`;
+    prFoot.style.opacity = bo * .9;
+  }
+  if (sh.id === "pipe") {
+    S.cam.style.transform = `scale(${lerp(1.0, 1.04, u)})`;
+    chapterAt(ppCh, t, sh.t0);
+    const pt = T.pipeTimes;
+    let lit = -1; pt.forEach((x, i) => { if (t >= x) lit = i; });
+    const reach = (() => { let y = 0; for (let i = 1; i < 7; i++) y += STEP * inOut3(seg(t, pt[i] - .5, pt[i])); return y; })();
+    const dolly = lerp(0, LAND ? -760 : -1300, inOut3(seg(t, sh.t0, sh.t1)));
+    ppRow.style.transform = `rotateY(${LAND ? 50 : 26}deg) translateX(${dolly}px)`;
+    ppLit.style.width = reach + "px";
+    ppNodes.forEach((w, i) => { const on = i <= lit; const n = $(".node", w), l = $(".nl", w); const fl = on ? Math.exp(-(t - pt[i]) / .4) : 0;
+      n.style.border = `2px solid ${on ? "#c8ff00" : "rgba(200,255,0,.25)"}`; n.style.color = on ? "#c8ff00" : "#55555c";
+      n.style.boxShadow = on ? `0 0 ${70 + 50 * fl}px rgba(200,255,0,${.4 + .3 * fl}), inset 0 0 26px rgba(200,255,0,.2)` : "none";
+      l.style.color = on ? "#f4f4f5" : "#55555c";
+      const k = eOut(seg(t, sh.t0 + .2 + i * .06, sh.t0 + .9 + i * .06)); w.style.opacity = k; });
+    dotStyle(ppDot, 55 + reach, 55, 11, eOut(seg(t, sh.t0 + .3, sh.t0 + .8)));
+  }
+  if (sh.id === "montage") {
+    const fl = A.flashes; const i = t < fl[1] ? 0 : t < fl[2] ? 1 : 2;
+    const on = t < A.silence;
+    [moA, moB, moC].forEach((e, j) => show(e, on && j === i));
+    const lu = seg(t, fl[i], i < 2 ? fl[i + 1] : A.silence);
+    S.cam.style.transform = `scale(${lerp(1.0, 1.12, lu)}) translateY(${lerp(20, -20, lu)}px)`;
+    ex = on ? Math.max(1 - seg(t, fl[i], fl[i] + .06), 0) : 1;
+  }
+  if (sh.id === "end") {
+    ex = 0;
+    const tt = t - A.hit;
+    enFlash.style.opacity = Math.exp(-tt / .18) * (tt >= 0 ? 1 : 0);
+    S.cam.style.transform = `scale(${lerp(1.04, 1.0, out3(seg(t, A.hit, sh.t1)))})`;
+    const fk = out3(seg(t, A.hit + .05, A.endLand));
+    enWm.style.filter = `blur(${(1 - fk) * 24}px)`; enWm.style.opacity = fk; enWm.style.letterSpacing = lerp(.02, -.05, fk) + "em";
+    // the dot drops from the flash into the period
+    const du = inOut3(seg(t, A.hit + .25, A.endLand + .2));
+    const cx = W / 2, cy = EY + ES * .6;
+    const dx = lerp(cx, G.endDot.x, du), dy = lerp(cy, G.endDot.y, du) - Math.sin(Math.PI * du) * 60;
+    dotStyle(enDot, dx, dy, lerp(16, ES * .1, du), 1);
+    enGlow.style.opacity = 1;
+    const l1 = eOut(seg(t, A.endLine, A.endLine + .8)); enL1.style.opacity = l1; enL1.style.transform = `translateY(${(1 - l1) * 18}px)`; enL1.style.filter = `blur(${(1 - l1) * 6}px)`;
+    const l2 = eOut(seg(t, A.endLine + .3, A.endLine + 1.1)); enL2.style.opacity = l2;
+    const uk = spring(t - A.url, 2.2, .72); enUrl.style.opacity = clamp(uk); enUrl.style.transform = `translateY(${(1 - uk) * 30}px)`;
+    $(".sheen", enUrl).style.transform = `translateX(${-110 + 220 * cubic(seg(t, A.url + .6, A.url + 1.6))}%)`;
+  }
+  black.style.opacity = clamp(ex);
+  // small site line from the first chapter to the montage
+  const tgOn = t >= SH.title.t0 + .6 && t < A.silence; tagline.style.opacity = tgOn ? .9 * Math.min(1, seg(t, SH.title.t0 + .6, SH.title.t0 + 1.4)) : 0;
+  subs.forEach((s) => { const k = eOut(seg(t, s.from, s.from + .6)), o = seg(t, s.to - .3, s.to); const on = t >= s.from && t <= s.to;
+    s.b.style.visibility = on ? "visible" : "hidden"; s.b.style.opacity = k * (1 - o); s.b.style.transform = `translateY(${(1 - k) * 10}px)`; s.b.style.filter = `blur(${(1 - k) * 4}px)`; });
+}
+window.seek = seek;
+window.motion = (t, dt = 1 / 24) => {
+  const sh = T.shots.find((s) => t >= s.t0 && t < s.t1) || T.shots[T.shots.length - 1];
+  if (sh.id === "name") { const k0 = inOut3(seg(t, A.nameSweep, A.nameSweepEnd)), k1 = inOut3(seg(t + dt, A.nameSweep, A.nameSweepEnd)); return Math.abs(k1 - k0) * (G.nameX1 - G.nameX0 + 380); }
+  if (sh.id === "montage") return 30;
+  if (sh.id === "end" && t > A.hit + .2 && t < A.endLand + .3) return 40;
+  if (sh.id === "pipe") return 22;
+  if (sh.id === "tags" || sh.id === "profit") return 22;
+  return 12;
+};
+window.ready = (async () => {
+  await document.fonts.load('500 30px JBM'); await document.fonts.load('400 30px JBM');
+  await document.fonts.load('700 40px Geist'); await document.fonts.load('600 40px "Noto Sans CJK SC"');
+  await document.fonts.ready;
+  for (const id in shots) shots[id].d.style.display = "block"; measure(); for (const id in shots) shots[id].d.style.display = "none";
+  seek(+(Q.get("t") || 0));
+  return { W, H, duration: T.duration, fps: T.fps };
+})();
+</script>
+</body>
+</html>
