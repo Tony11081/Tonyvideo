@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Shopwright · 24s</title>
+<style>
+@font-face { font-family: Geist; src: url(fonts/Geist-Variable.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+:root {
+  --bg: #050505; --text: #f4f4f5; --muted: #8a8a93; --dim: #55555c;
+  --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
+  --lime: #c8ff00; --warn: #ffb224;
+  --chrome: linear-gradient(180deg, #fff 0%, #fff 38%, #a1a1aa 100%);
+  --sans: Geist, "Noto Sans CJK SC", "PingFang SC", sans-serif;
+  --mono: JBM, "Geist Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); overflow: hidden; }
+#stage { position: relative; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans);
+  -webkit-font-smoothing: antialiased; }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+#grid, #gridLit { background-image: radial-gradient(rgba(255,255,255,.16) 1.4px, transparent 1.8px); background-size: 26px 26px; }
+#gridLit { background-image: radial-gradient(rgba(200,255,0,.85) 1.6px, transparent 2px); }
+#grain { opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#vignette { background: radial-gradient(ellipse 85% 70% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
+#world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+
+/* ---------- Console (rebuilt from the site's hero demo) ---------- */
+.con { position: absolute; border-radius: 24px; border: 1px solid var(--line2);
+  background: linear-gradient(180deg, rgba(24,24,27,.86), rgba(10,10,11,.94));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 40px 120px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.6);
+  font-family: var(--mono); overflow: hidden; }
+.con-edge { position: absolute; top: 0; left: 12%; right: 12%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); }
+.bar { display: flex; align-items: center; gap: 12px; height: 72px; padding: 0 30px; border-bottom: 1px solid var(--line);
+  font-size: 21px; color: var(--muted); }
+.bar > span { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.12); }
+.bar code { margin-left: 14px; font-family: inherit; }
+.state { position: relative; margin-left: auto; font-weight: 500; }
+.state i { font-style: normal; }
+.state .run { color: var(--warn); }
+.state .done { position: absolute; right: 0; top: 0; color: var(--lime); white-space: nowrap; }
+.body { position: relative; padding: 24px 34px 30px; }
+.lbl { font-size: 17px; letter-spacing: .22em; color: var(--muted); height: 30px; }
+.row { display: flex; align-items: center; height: 56px; font-size: 29px; white-space: pre; }
+.row .k { width: 200px; color: var(--muted); }
+.row .k b { color: var(--lime); font-weight: 400; margin-right: 12px; }
+.row .v { color: var(--text); }
+.row .v.flag { color: var(--warn); }
+.track { position: absolute; left: 16px; width: 2px; background: linear-gradient(var(--lime), rgba(200,255,0,.25));
+  box-shadow: 0 0 12px rgba(200,255,0,.6); transform-origin: 50% 0; }
+.out { margin-top: 26px; }
+.card { margin-top: 14px; padding: 20px 24px 22px; border: 1px solid var(--line2); border-radius: 16px;
+  background: rgba(255,255,255,.025); transform-origin: 0 0; }
+.meta { display: flex; justify-content: space-between; font-size: 18px; letter-spacing: .16em; color: var(--muted); margin-bottom: 12px; }
+.meta em { font-style: normal; letter-spacing: .04em; color: var(--text); }
+.meta em i { font-style: normal; color: var(--lime); }
+.ttl { margin: 0; font-family: var(--sans); font-size: 34px; font-weight: 520; line-height: 1.32; letter-spacing: -.01em; min-height: 90px; }
+.tok { display: inline-block; white-space: pre; }
+.tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.tags li { font-size: 21px; padding: 8px 14px; border: 1px solid var(--line2); border-radius: 10px; color: #d4d4d8;
+  background: rgba(255,255,255,.03); transform-origin: 50% 60%; }
+.verdict { display: flex; align-items: center; gap: 16px; font-size: 22px; color: #a1a1aa; padding-top: 16px; padding-bottom: 16px; }
+.verdict .vd { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+.comet { position: absolute; inset: -1px; border-radius: 25px; padding: 2px; pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+
+/* ---------- Section heads ---------- */
+.eyebrow { position: absolute; display: flex; align-items: center; gap: 14px; font: 500 20px/1 var(--mono);
+  letter-spacing: .24em; color: var(--muted); }
+.eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.6);
+  transform-origin: left; transform: scaleX(var(--s, 1)); }
+.h2wrap { position: absolute; overflow: hidden; padding-bottom: .1em; }
+.h2 { display: block; font-family: var(--sans); font-size: 84px; font-weight: 650; letter-spacing: -.04em; line-height: 1.1;
+  background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+.small { position: absolute; font: 400 19px/1 var(--mono); letter-spacing: .2em; color: var(--dim); }
+
+/* ---------- Workbench board ---------- */
+.bcard { position: absolute; border-radius: 20px; border: 1px solid var(--line2); background: #0c0c0d; padding: 22px 26px;
+  display: flex; flex-direction: column; justify-content: space-between; transform-origin: 50% 50%; }
+.bcard em { font: 500 18px/1 var(--mono); letter-spacing: .18em; font-style: normal; color: var(--dim); }
+.bcard strong { font-size: 36px; font-weight: 560; letter-spacing: -.01em; }
+.bcard.skill { border-color: rgba(200,255,0,.45); box-shadow: inset 0 0 0 1px rgba(200,255,0,.08); }
+.bcard.skill em { color: var(--lime); }
+.slot { position: absolute; border-radius: 20px; border: 1.5px dashed rgba(255,255,255,.13); }
+.chip { position: absolute; display: flex; align-items: center; gap: 12px; height: 62px; padding: 0 24px; border-radius: 999px;
+  border: 1px solid var(--line2); color: #a1a1aa; font-size: 27px; white-space: nowrap; background: rgba(255,255,255,.02); }
+.chip b { color: var(--lime); font-weight: 400; font-family: var(--mono); }
+
+/* ---------- Tools ---------- */
+.pill { position: absolute; display: flex; align-items: center; justify-content: space-between; border-radius: 999px;
+  border: 1px solid var(--line2); padding: 0 40px 0 68px; font-size: 38px; font-weight: 520; color: #a1a1aa; background: rgba(255,255,255,.015); }
+.pill .arw { font: 400 34px/1 var(--sans); color: var(--dim); }
+.badge { font: 500 24px/1 var(--mono); color: var(--lime); letter-spacing: .02em; margin-left: auto; margin-right: 28px; white-space: nowrap; }
+
+/* ---------- Pipeline ---------- */
+.node { position: absolute; width: 76px; height: 76px; border-radius: 20px; border: 1.5px solid rgba(200,255,0,.22);
+  display: grid; place-items: center; font: 500 24px/1 var(--mono); color: var(--dim); background: #0a0a0b; }
+.nlabel { position: absolute; font-size: 38px; font-weight: 520; white-space: nowrap; color: var(--dim); }
+.pline { position: absolute; width: 2px; background: rgba(200,255,0,.14); }
+.pline i { position: absolute; left: 0; top: 0; width: 2px; background: var(--lime); box-shadow: 0 0 12px rgba(200,255,0,.8); display: block; }
+
+/* ---------- Screen-space ---------- */
+#flood { background: var(--lime); }
+#dot { position: absolute; left: 0; top: 0; border-radius: 50%; background: var(--lime); will-change: transform; }
+#ripple { position: absolute; left: 0; top: 0; border-radius: 50%; border: 3px solid var(--lime); }
+.sub { position: absolute; left: 0; top: 0; }
+.subline { overflow: hidden; padding-bottom: .12em; }
+.subline span { display: inline-block; white-space: nowrap; }
+.sub .zh { font-size: 50px; font-weight: 600; letter-spacing: .01em; color: var(--text); }
+.sub .en { font-size: 28px; font-weight: 450; color: #a1a1aa; margin-top: 8px; letter-spacing: .005em; }
+/* Horizontal: an editorial column on the right; lines may wrap. */
+.land .en span { white-space: normal; max-width: 520px; }
+.land .zh { font-size: 60px; line-height: 1.22; letter-spacing: -.005em; }
+.land .en { font-size: 30px; line-height: 1.35; margin-top: 18px; }
+#end { position: absolute; inset: 0; }
+.hookT { font-size: 112px; letter-spacing: -.045em; }
+.hookS { display: block; font-size: 44px; font-weight: 500; color: #a1a1aa; letter-spacing: .02em; white-space: nowrap; }
+#sitebar { position: absolute; display: flex; align-items: center; gap: 14px; height: 46px; padding: 0 20px 0 16px; border-radius: 999px;
+  border: 1px solid var(--line2); background: rgba(10,10,11,.6); font: 500 22px/1 var(--mono); color: #a1a1aa; white-space: nowrap; }
+#sitebar i { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.8); }
+#sitebar span { font-family: var(--sans); font-weight: 600; color: var(--text); font-size: 23px; }
+#sitebar b { font-weight: 500; color: var(--lime); }
+.wm { position: absolute; font-family: Geist, sans-serif; font-weight: 700; letter-spacing: -.045em; white-space: nowrap;
+  background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tag1 { position: absolute; font-weight: 650; letter-spacing: -.035em; white-space: nowrap; line-height: 1.12; }
+.tag1 .l { display: block; overflow: hidden; padding-bottom: .08em; }
+.tag1 .l span { display: inline-block; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tag1 .l.dim span { background: linear-gradient(180deg, #d4d4d8 0%, #71717a 100%); -webkit-background-clip: text; background-clip: text; }
+.tagen { position: absolute; font-size: 30px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.tagen span { display: inline-block; }
+.url { position: absolute; display: flex; align-items: center; gap: 14px; height: 84px; padding: 0 40px; border-radius: 999px;
+  background: var(--lime); color: #050505; font: 600 34px/1 Geist, sans-serif; letter-spacing: -.01em; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(200,255,0,.4), 0 18px 60px -12px rgba(200,255,0,.55); }
+.url .sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.75) 48%, transparent 64%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="grid"></div>
+  <div class="layer" id="gridLit"></div>
+  <div class="layer" id="glow"></div>
+  <div id="world"></div>
+  <div class="layer" id="flood"></div>
+  <div id="ripple"></div>
+  <div id="hook"></div>
+  <div id="end"></div>
+  <div id="sitebar"></div>
+  <div id="dot"></div>
+  <div class="sub" id="sub"></div>
+  <div class="layer" id="vignette"></div>
+  <div class="layer" id="grain"></div>
+</div>
+<script src="timeline.js"></script>
+<script>
+"use strict";
+// ---------------------------------------------------------------------------
+// Format: ?w=1080&h=1920 (default, vertical) or ?w=1920&h=1080 (horizontal).
+const Q = new URLSearchParams(location.search);
+const W = +(Q.get("w") || 1080), H = +(Q.get("h") || 1920);
+const LAND = W > H;
+const A = T.at, C = T.copy, BEAT = T.BEAT;
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const stage = $("#stage"); stage.style.width = W + "px"; stage.style.height = H + "px";
+document.body.style.width = W + "px"; document.body.style.height = H + "px";
+
+// ---------- math ----------
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const seg = (t, t0, t1) => clamp((t - t0) / (t1 - t0));
+const eOut = (u) => (u >= 1 ? 1 : 1 - Math.pow(2, -10 * u));            // expo out
+const eInOut = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u < .5 ? Math.pow(2, 20 * u - 10) / 2 : (2 - Math.pow(2, -20 * u + 10)) / 2);
+const eIn = (u) => (u <= 0 ? 0 : Math.pow(2, 10 * u - 10));
+const cubic = (u) => u * u * (3 - 2 * u);
+// Big moves (camera, long dives, exits) use gentle curves: peak speed stays near
+// 1.5x the average, so motion blur stays smooth instead of ghosting.
+const inOut3 = (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const in3 = (u) => u * u * u;
+// Closed-form damped spring step response: 0 -> 1, tiny overshoot.
+function spring(t, freq = 2.6, zeta = .72) {
+  if (t <= 0) return 0;
+  const w = 2 * Math.PI * freq, wd = w * Math.sqrt(1 - zeta * zeta);
+  return 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + (zeta * w / wd) * Math.sin(wd * t));
+}
+const S = (t, t0, f, z) => spring(t - t0, f, z);
+
+// ---------- world layout ----------
+const world = $("#world");
+world.style.width = W + "px";
+const M = LAND ? 0 : 80;                // side margin (vertical)
+const CW = LAND ? 1000 : 920;            // content width
+const CX = LAND ? 200 : M;                // content left
+const SEC = LAND ? 1400 : 1920;          // section spacing in world
+// Console
+const con = el("div", "con", world);
+con.style.left = CX + "px"; con.style.top = "250px"; con.style.width = CW + "px";
+el("div", "con-edge", con);
+const bar = el("div", "bar", con, `<span></span><span></span><span></span><code>skill/listing · run 0428</code>
+  <b class="state"><i class="run">● running</i><i class="done">✓ validated</i></b>`);
+const body = el("div", "body", con);
+el("div", "lbl", body, "INPUT");
+const rows = C.input.map(([k, v]) => {
+  const r = el("div", "row", body, `<span class="k"><b>›</b>${k}</span><span class="v${k === "unknown" ? " flag" : ""}"></span>`);
+  return { r, v: $(".v", r), text: v };
+});
+const track = el("div", "track", body);
+const out = el("div", "out", body);
+el("div", "lbl", out, "OUTPUT");
+const tcard = el("div", "card", out, `<div class="meta"><span>TITLE</span><em><i>0</i>/140</em></div><p class="ttl"></p>`);
+const ttl = $(".ttl", tcard), tcount = $(".meta i", tcard);
+const toks = C.titleWords.map((w, i) => el("span", "tok", ttl, w + (i < C.titleWords.length - 1 ? " " : "")));
+const gcard = el("div", "card", out, `<div class="meta"><span>TAGS</span><em><i>0</i>/13</em></div><ul class="tags"></ul>`);
+const gcount = $(".meta i", gcard);
+const chipsT = C.tags.map((tg) => el("li", "", $(".tags", gcard), tg));
+const vcard = el("div", "card verdict", out, `<span class="vd"></span><span class="vt">facts checked · 1 unknown flagged</span>`);
+const comet = el("div", "comet", con);
+
+// Customize section
+const B0 = SEC;
+const eyeB = el("div", "eyebrow", world, "ETSY WORKBENCH");
+const h2B = el("div", "h2wrap", world, `<span class="h2">工作台，你说了算</span>`);
+const lblBoard = el("div", "small", world, "我的工作台");
+const lblLib = el("div", "small", world, "功能库");
+const cardW = (CW - 24) / 2, cardH = 120, gap = 24;
+const slotPos = (i) => ({ x: CX + (i % 2) * (cardW + gap), y: B0 + 440 + Math.floor(i / 2) * (cardH + gap) });
+const slots = [0, 1, 2, 3, 4, 5, 6, 7].map((i) => { const s = el("div", "slot", world); const p = slotPos(i);
+  Object.assign(s.style, { left: p.x + "px", top: p.y + "px", width: cardW + "px", height: cardH + "px" }); return s; });
+const bcards = C.board.map(([kind, name], i) => {
+  const c = el("div", "bcard" + (kind === "SKILL" ? " skill" : ""), world, `<em>${kind}</em><strong>${name}</strong>`);
+  const p = slotPos(i); Object.assign(c.style, { left: p.x + "px", top: p.y + "px", width: cardW + "px", height: cardH + "px" });
+  return c;
+});
+const libChips = C.library.map((name) => el("div", "chip", world, `<b>+</b>${name}`));
+// The card the picked chip becomes.
+const fresh = el("div", "bcard skill", world, `<em>SKILL</em><strong>${C.library[0]}</strong>`);
+
+// Tools section
+const C0 = SEC * 2;
+const eyeC = el("div", "eyebrow", world, "FREE ETSY TOOLS");
+const h2C = el("div", "h2wrap", world, `<span class="h2">免费工具，无需登录</span>`);
+const pillH = 100, pillGap = 20;
+const pills = C.tools.map((name, i) => {
+  const p = el("div", "pill", world, `<span class="nm">${name}</span><span class="badge"></span><span class="arw">↗</span>`);
+  Object.assign(p.style, { left: CX + "px", top: (C0 + 420 + i * (pillH + pillGap)) + "px", width: CW + "px", height: pillH + "px" });
+  return p;
+});
+// Real results of the same demo listing.
+const badgeText = { 2: "74/140 ✓", 3: "13/13 ✓" };
+
+// Pipeline section
+const D0 = SEC * 3;
+const eyeD = el("div", "eyebrow", world, "ETSY PIPELINE");
+const h2D = el("div", "h2wrap", world, `<span class="h2">一条完整的产品流水线</span>`);
+const nodeX = CX + 4, nodeTop = D0 + 430, nodeStep = 110;
+const pline = el("div", "pline", world, "<i></i>");
+const nodes = C.pipeline.map((name, i) => {
+  const n = el("div", "node", world, String(i + 1).padStart(2, "0"));
+  Object.assign(n.style, { left: nodeX + "px", top: (nodeTop + i * nodeStep) + "px" });
+  const l = el("div", "nlabel", world, name);
+  Object.assign(l.style, { left: (nodeX + 112) + "px", top: (nodeTop + i * nodeStep + 14) + "px" });
+  return { n, l };
+});
+Object.assign(pline.style, { left: (nodeX + 37) + "px", top: (nodeTop + 38) + "px", height: (6 * nodeStep) + "px" });
+
+function placeHead(eye, h2, y0) {
+  Object.assign(eye.style, { left: CX + "px", top: (y0 + 200) + "px" });
+  Object.assign(h2.style, { left: CX + "px", top: (y0 + 244) + "px" });
+}
+placeHead(eyeB, h2B, B0); placeHead(eyeC, h2C, C0); placeHead(eyeD, h2D, D0);
+Object.assign(lblBoard.style, { left: CX + "px", top: (B0 + 404) + "px" });
+Object.assign(lblLib.style, { left: CX + "px", top: (B0 + 1028) + "px" });
+
+// End card (screen space)
+// Opening title: says what this is in the first frame.
+const hook = $("#hook");
+hook.style.position = "absolute"; hook.style.inset = "0";
+const hookEye = el("div", "eyebrow", hook, "FOR ETSY SELLERS");
+const hookT = el("div", "h2wrap", hook, `<span class="h2 hookT">Etsy 卖家工具站</span>`);
+const hookS = el("div", "h2wrap", hook, `<span class="hookS">标题 · 标签 · 利润 · 上架</span>`);
+// Site label that stays on screen under the subtitles.
+const sitebar = $("#sitebar");
+sitebar.innerHTML = `<i></i><span>Etsy 卖家工具站</span><b>openaigrowth.com</b>`;
+const end = $("#end");
+const wm = el("div", "wm", end, "Shopwright");
+const tagline = el("div", "tag1", end, `<span class="l"><span>Etsy 卖家工具站，</span></span><span class="l dim"><span>按你的方式组装。</span></span>`);
+const tagen = el("div", "tagen", end, `<span>Your Etsy toolkit, built your way.</span>`);
+const url = el("div", "url", end, `<span>openaigrowth.com</span><span style="font-size:30px">→</span><i class="sheen"></i>`);
+
+// Subtitles
+const sub = $("#sub");
+const subs = T.subtitles.map((s) => {
+  const box = el("div", "", sub);
+  box.style.position = "absolute"; box.style.left = "0"; box.style.top = "0";
+  el("div", "subline zh", box, `<span>${LAND ? s.zhL : s.zh}</span>`);
+  el("div", "subline en", box, `<span>${s.en}</span>`);
+  return { ...s, box, zh: $(".zh span", box), en: $(".en span", box) };
+});
+
+// ---------- geometry measured once fonts are in ----------
+const G = {};
+function rel(e) { // layout position relative to the world (transforms ignored)
+  let x = 0, y = 0, n = e;
+  while (n && n !== world) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+  return { x, y, w: e.offsetWidth, h: e.offsetHeight };
+}
+function measure() {
+  // Library chips: wrap into rows under the board.
+  let x = CX, y = B0 + 1066;
+  libChips.forEach((c) => { const w = c.offsetWidth; if (x + w > CX + CW) { x = CX; y += 62 + 14; }
+    c.style.left = x + "px"; c.style.top = y + "px"; c._x = x; c._y = y; x += w + 14; });
+  G.con = rel(con); G.body = rel(body);
+  G.rows = rows.map((r) => ({ v: rel(r.v), r: rel(r.r) }));
+  G.out = rel(out); G.tcard = rel(tcard); G.gcard = rel(gcard); G.vcard = rel(vcard);
+  G.vd = rel($(".vd", vcard));
+  G.toks = toks.map(rel); G.tags = chipsT.map(rel);
+  // Track runs from under the last input row to the title card.
+  const tTop = G.rows[3].r.y + G.rows[3].r.h - G.body.y + 6, tBot = G.tcard.y - G.body.y + 34;
+  track.style.top = tTop + "px"; track.style.height = (tBot - tTop) + "px";
+  G.track = { x: G.body.x + 17, y0: G.body.y + tTop, y1: G.body.y + tBot };
+  G.cards = bcards.map(rel); G.slot6 = slotPos(6);
+  G.chip0 = { x: libChips[0]._x, y: libChips[0]._y, w: libChips[0].offsetWidth, h: libChips[0].offsetHeight };
+  G.libShift = libChips.map((c, i) => i === 0 ? null : (i === 1 ? { x: libChips[0]._x - c._x, y: libChips[0]._y - c._y } :
+    { x: libChips[i - 1]._x - c._x, y: libChips[i - 1]._y - c._y }));
+  G.pills = pills.map(rel);
+  G.nodes = nodes.map(({ n }) => rel(n));
+  // Camera targets: each section framed above the subtitle band.
+  // Vertical: content above the subtitle band. Horizontal: content on the left, subtitles on the right.
+  const band = LAND ? 1000 : 1290, top = LAND ? 80 : 200;
+  const sx = LAND ? 720 : W / 2;                     // screen x of the content column's centre
+  const frame = (y0, y1) => { const z = Math.min(1, (band - top - 20) / (y1 - y0));
+    return { z, cy: (y0 + y1) / 2 - ((top + band) / 2 - H / 2) / z, cx: (CX + CW / 2) - (sx - W / 2) / z }; };
+  G.camCon = frame(G.con.y, G.con.y + G.con.h);
+  const inTop = G.rows[0].r.y - 40, inBot = G.rows[3].r.y + G.rows[3].r.h + 10;
+  const zi = LAND ? 1.02 : 1.3;
+  // Keep the panel's left edge (and the lime chevrons) on screen while zoomed in.
+  G.camIn = { z: zi, cy: (inTop + inBot) / 2 - ((LAND ? 520 : 720) - H / 2) / zi, cx: CX - ((LAND ? 180 : 44) - W / 2) / zi };
+  G.camB = frame(B0 + 200, B0 + 1066 + 62 * 2 + 14);
+  G.camC = frame(C0 + 200, C0 + 420 + 6 * pillH + 5 * pillGap);
+  G.camD = frame(D0 + 200, nodeTop + 6 * nodeStep + 76);
+  world.style.height = (SEC * 4) + "px";
+}
+
+// ---------- camera ----------
+function camAt(t) {
+  const k = [
+    [0, G.camIn.z, G.camIn.cx, G.camIn.cy + 14],
+    [A.drop, G.camIn.z, G.camIn.cx, G.camIn.cy],
+    [A.drop + BEAT * 2.5, G.camCon.z, G.camCon.cx, G.camCon.cy, inOut3],
+    [A.floodPeak + .02, G.camCon.z, G.camCon.cx, G.camCon.cy + 10],
+  ];
+  // Hidden behind the full-frame flood: jump to the board.
+  if (t < A.floodPeak + .03) return interp(k, t);
+  const k2 = [
+    [A.floodPeak + .03, G.camB.z, G.camB.cx, G.camB.cy - 8],
+    [A.panTools, G.camB.z, G.camB.cx, G.camB.cy],
+    [A.panTools + BEAT * 2, G.camC.z, G.camC.cx, G.camC.cy, inOut3],
+    [A.panPipe, G.camC.z, G.camC.cx, G.camC.cy + 6],
+    [A.panPipe + BEAT * 2, G.camD.z, G.camD.cx, G.camD.cy, inOut3],
+    [A.end, G.camD.z, G.camD.cx, G.camD.cy + 8],
+  ];
+  return interp(k2, t);
+}
+function interp(k, t) {
+  if (t <= k[0][0]) return { z: k[0][1], x: k[0][2], y: k[0][3] };
+  for (let i = 1; i < k.length; i++) {
+    if (t <= k[i][0]) {
+      const a = k[i - 1], b = k[i], e = b[4] || ((u) => u);
+      const u = e(seg(t, a[0], b[0]));
+      return { z: Math.exp(lerp(Math.log(a[1]), Math.log(b[1]), u)), x: lerp(a[2], b[2], u), y: lerp(a[3], b[3], u) };
+    }
+  }
+  const l = k[k.length - 1]; return { z: l[1], x: l[2], y: l[3] };
+}
+const proj = (cam, x, y) => ({ x: (x - cam.x) * cam.z + W / 2, y: (y - cam.y) * cam.z + H / 2 });
+
+// ---------- the protagonist ----------
+// Returns the dot's world position (or screen position during the outro) and size.
+function hop(p, q, u, lift = 26) { return { x: lerp(p.x, q.x, u), y: lerp(p.y, q.y, u) - Math.sin(Math.PI * u) * lift }; }
+function along(pts, u) { // constant-speed polyline
+  const L = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); L.push(d); tot += d; }
+  let s = u * tot;
+  for (let i = 0; i < L.length; i++) { if (s <= L[i]) { const v = L[i] ? s / L[i] : 0; return { x: lerp(pts[i].x, pts[i + 1].x, v), y: lerp(pts[i].y, pts[i + 1].y, v) }; } s -= L[i]; }
+  return pts[pts.length - 1];
+}
+function caret(line, n) { const v = G.rows[line].v, r = G.rows[line].r; const w = n ? measureText(line, n) : 0; return { x: v.x + w + 16, y: r.y + r.h / 2 + 1 }; }
+const textW = {};
+function measureText(line, n) { const key = line + ":" + n; if (textW[key] == null) { const s = rows[line].v; const old = s.textContent; s.textContent = rows[line].text.slice(0, n); textW[key] = s.offsetWidth; s.textContent = old; } return textW[key]; }
+function typedCount(line, t) { let n = 0; for (const k of T.typing) if (k.line === line && t >= k.t) n = k.i + 1; return n; }
+function dotWorld(t) {
+  const start = { x: G.camIn.cx, y: G.camIn.cy + 14 + ((LAND ? 560 : 780) - H / 2) / G.camIn.z };
+  if (t < A.unfold + BEAT * .4) return start;
+  const lineStarts = [A.typeStart, ...[1, 2, 3].map((l) => T.typing.find((k) => k.line === l).t)];
+  if (t < A.typeStart) return hop(start, caret(0, 0), eOut(seg(t, A.unfold + BEAT * .4, A.typeStart)), 0);
+  if (t < A.drop) {
+    let line = 0; for (let l = 0; l < 4; l++) if (t >= lineStarts[l] - .12) line = l;
+    const c = caret(line, typedCount(line, t));
+    if (line > 0 && t < lineStarts[line]) { const prev = caret(line - 1, rows[line - 1].text.length); return hop(prev, c, eOut(seg(t, lineStarts[line] - .12, lineStarts[line])), 8); }
+    return c;
+  }
+  const endCaret = caret(3, rows[3].text.length);
+  const tokPos = (i) => { const g = G.toks[i]; return { x: g.x + g.w + 6, y: g.y + g.h * .55 }; };
+  if (t < A.titleCard) return along([endCaret, { x: G.track.x, y: endCaret.y }, { x: G.track.x, y: G.track.y1 }], cubic(seg(t, A.drop, A.titleCard)));
+  const tk = T.tokenTimes;
+  if (t < tk[0]) return hop({ x: G.track.x, y: G.track.y1 }, { x: G.toks[0].x - 6, y: tokPos(0).y }, eOut(seg(t, A.titleCard, tk[0])), 10);
+  if (t < A.tagsCard) { let i = 0; for (let j = 0; j < tk.length; j++) if (t >= tk[j]) i = j;
+    const p = i ? tokPos(i - 1) : { x: G.toks[0].x - 6, y: tokPos(0).y }; return hop(p, tokPos(i), eOut(seg(t, tk[i], tk[i] + .09)), 0); }
+  const tagC = (i) => { const g = G.tags[i]; return { x: g.x + 2, y: g.y + 2 }; };
+  const gt = T.tagTimes;
+  if (t < gt[0]) return hop(tokPos(tk.length - 1), tagC(0), eOut(seg(t, A.tagsCard, gt[0])), 40);
+  const vdP = { x: G.vd.x + G.vd.w / 2, y: G.vd.y + G.vd.h / 2 };
+  if (t < A.verdict - BEAT * .5) { let i = 0; for (let j = 0; j < gt.length; j++) if (t >= gt[j] - .08) i = j;
+    if (i === 0) return tagC(0);
+    return hop(tagC(i - 1), tagC(i), eOut(seg(t, gt[i] - .08, gt[i] + .02)), 22); }
+  if (t < A.flood) return hop(tagC(12), vdP, eOut(seg(t, A.verdict - BEAT * .5, A.verdict)), 30);
+  if (t < A.floodPeak + .03) return vdP;
+  // Board: rides each card as it lands, then picks a chip.
+  const corner = (i) => { const g = G.cards[i]; return { x: g.x + g.w - 26, y: g.y + 26 }; };
+  const bt = A.boardCards;
+  if (t < A.pick) { let i = 0; for (let j = 1; j < bt.length; j++) if (t >= bt[j] - .1) i = j;
+    if (i === 0) return corner(0);
+    return hop(corner(i - 1), corner(i), eOut(seg(t, bt[i] - .1, bt[i] + .05)), 30); }
+  const chipP = { x: G.chip0.x + 28, y: G.chip0.y + G.chip0.h / 2 };
+  if (t < A.chipFly) return hop(corner(5), chipP, inOut3(seg(t, A.pick, A.click)), 60);
+  const fr = freshRect(t);
+  const onFresh = { x: fr.x + fr.w - 26, y: fr.y + 26 };
+  if (t < A.panTools) { const u = eOut(seg(t, A.chipFly, A.chipFly + .2)); return { x: lerp(chipP.x, onFresh.x, u), y: lerp(chipP.y, onFresh.y, u) }; }
+  // Tools: dives ahead of the camera, then lights each pill.
+  const pillP = (i) => { const g = G.pills[i]; return { x: g.x + 34, y: g.y + g.h / 2 }; };
+  const tl = A.toolLights;
+  if (t < tl[0]) return along([onFresh, { x: onFresh.x, y: onFresh.y + 160 }, { x: pillP(0).x, y: pillP(0).y }], inOut3(seg(t, A.panTools - .1, tl[0])));
+  if (t < A.panPipe) { let i = 0; for (let j = 0; j < tl.length; j++) if (t >= tl[j] - .12) i = j;
+    if (i === 0) return pillP(0);
+    return hop(pillP(i - 1), pillP(i), eOut(seg(t, tl[i] - .12, tl[i])), 0); }
+  const nodeP = (i) => { const g = G.nodes[i]; return { x: g.x + g.w / 2, y: g.y + g.h / 2 }; };
+  const pn = A.pipeNodes;
+  if (t < pn[0]) return along([pillP(5), { x: pillP(5).x, y: pillP(5).y + 200 }, nodeP(0)], inOut3(seg(t, A.panPipe - .1, pn[0])));
+  if (t < A.outro) { let i = 0; for (let j = 0; j < pn.length; j++) if (t >= pn[j] - .14) i = j;
+    if (i === 0) return nodeP(0);
+    return hop(nodeP(i - 1), nodeP(i), eOut(seg(t, pn[i] - .14, pn[i])), 0); }
+  return nodeP(6);
+}
+function freshRect(t) {
+  const from = G.chip0, s = G.slot6;
+  const u = inOut3(seg(t, A.chipFly, A.chipLand));
+  return { x: lerp(from.x, s.x, u), y: lerp(from.y, s.y, u), w: lerp(from.w, cardW, u), h: lerp(from.h, cardH, u), u };
+}
+
+// End card geometry (screen space).
+const endG = {};
+function measureEnd() {
+  const wmSize = LAND ? 170 : 150;
+  wm.style.fontSize = wmSize + "px";
+  const ww = wm.offsetWidth;
+  const periodGap = wmSize * .06, dotR = wmSize * .095;
+  const totalW = ww + periodGap + dotR * 2;
+  endG.wmX = (W - totalW) / 2; endG.wmY = LAND ? 300 : 600;
+  wm.style.left = endG.wmX + "px"; wm.style.top = endG.wmY + "px";
+  endG.dot = { x: endG.wmX + ww + periodGap + dotR, y: endG.wmY + wm.offsetHeight * .74, r: dotR };
+  const tSize = LAND ? 70 : 76;
+  tagline.style.fontSize = tSize + "px";
+  tagline.style.left = (W - tagline.offsetWidth) / 2 + "px"; tagline.style.top = (endG.wmY + wm.offsetHeight + (LAND ? 50 : 70)) + "px";
+  tagen.style.left = (W - tagen.offsetWidth) / 2 + "px"; tagen.style.top = (tagline.offsetTop + tagline.offsetHeight + 26) + "px";
+  url.style.left = (W - url.offsetWidth) / 2 + "px"; url.style.top = (tagen.offsetTop + tagen.offsetHeight + (LAND ? 50 : 70)) + "px";
+}
+
+// ---------- opening title + site label ----------
+const hookG = {};
+function measureHook() {
+  const tw = hookT.offsetWidth, cx = LAND ? W / 2 : W / 2;
+  const y0 = LAND ? 330 : 640;
+  const total = tw + 18 + 30;                          // title + gap + period
+  const x = (W - total) / 2;
+  Object.assign(hookEye.style, { left: x + "px", top: y0 + "px" });
+  Object.assign(hookT.style, { left: x + "px", top: (y0 + 44) + "px" });
+  Object.assign(hookS.style, { left: x + "px", top: (y0 + 44 + hookT.offsetHeight + 26) + "px" });
+  hookG.dot = { x: x + tw + 18 + 15, y: y0 + 44 + hookT.offsetHeight * .74, r: 15 };
+  if (LAND) Object.assign(sitebar.style, { left: CX + "px", top: "1006px" });
+  else Object.assign(sitebar.style, { left: M + "px", top: "1478px" });
+}
+// ---------- subtitles placement ----------
+function placeSubs() {
+  subs.forEach((s) => { if (LAND) { s.box.classList.add("land"); s.box.style.left = "1310px"; s.box.style.width = "520px";
+      s.box.style.top = (H / 2 - s.box.offsetHeight / 2) + "px"; }
+    else { s.box.style.left = M + "px"; s.box.style.top = "1318px"; } });
+}
+
+// ---------- frame ----------
+const dot = $("#dot"), ripple = $("#ripple"), flood = $("#flood"), glow = $("#glow"), gridLit = $("#gridLit"), grid = $("#grid");
+function show(e, on) { e.style.visibility = on ? "visible" : "hidden"; }
+function seek(t) {
+  const cam = camAt(t);
+  world.style.transform = `translate(${W / 2}px,${H / 2}px) scale(${cam.z}) translate(${-cam.x}px,${-cam.y}px)`;
+  // Background grid drifts at 30% of camera speed for depth.
+  grid.style.backgroundPosition = `${-cam.x * .3 % 26}px ${-cam.y * .3 % 26}px`;
+  gridLit.style.backgroundPosition = grid.style.backgroundPosition;
+
+  // ----- console -----
+  const uLine = eOut(seg(t, A.unfold, A.unfold + BEAT));          // hairline grows from the dot
+  const uOpen = eOut(seg(t, A.unfold + BEAT * .5, A.unfoldEnd + .2)); // panel opens around it
+  const dw = dotWorld(Math.min(t, A.unfold));
+  if (t < A.floodPeak + .03) {
+    show(con, t >= A.unfold);
+    const top = lerp(dw.y, G.con.y, uOpen), bot = lerp(dw.y, G.con.y + G.con.h, uOpen);
+    // The hairline grows out of the dot towards both edges of the panel.
+    const clipL = (dw.x - CX) * (1 - uLine), clipR = (CX + CW - dw.x) * (1 - uLine);
+    con.style.clipPath = `inset(${top - G.con.y}px ${clipR}px ${G.con.y + G.con.h - bot}px ${clipL}px round ${uOpen > .02 ? 24 : 2}px)`;
+    con.style.borderColor = uOpen < 1 ? `rgba(200,255,0,${.6 * (1 - uOpen) + .14})` : "";
+    // Typed values.
+    rows.forEach((r, line) => { const n = typedCount(line, t); r.v.textContent = r.text.slice(0, n); });
+    // Track draws behind the dot.
+    track.style.transform = `scaleY(${cubic(seg(t, A.drop + BEAT * .3, A.titleCard))})`;
+    // Title card grows from the dot.
+    const tc = eOut(seg(t, A.titleCard, A.titleCard + BEAT * .9));
+    tcard.style.opacity = tc > 0 ? 1 : 0; tcard.style.clipPath = `inset(0 ${100 - tc * 100}% ${100 - tc * 100}% 0 round 16px)`;
+    let chars = 0;
+    toks.forEach((s, i) => { const k = seg(t, T.tokenTimes[i], T.tokenTimes[i] + .22); s.style.opacity = k > 0 ? .25 + .75 * k : 0;
+      s.style.transform = `translateY(${(1 - eOut(k)) * 14}px)`; s.style.filter = ""; if (t >= T.tokenTimes[i]) chars = ttlChars(i); });
+    tcount.textContent = String(chars);
+    const gc = eOut(seg(t, A.tagsCard, A.tagsCard + BEAT * .9));
+    gcard.style.opacity = gc > 0 ? 1 : 0; gcard.style.clipPath = `inset(0 ${100 - gc * 100}% ${100 - gc * 100}% 0 round 16px)`;
+    let n = 0;
+    chipsT.forEach((c, i) => { const s = S(t, T.tagTimes[i], 3.2, .62); c.style.opacity = t >= T.tagTimes[i] ? 1 : 0;
+      c.style.transform = `scale(${.55 + .45 * s})`; if (t >= T.tagTimes[i]) n = i + 1;
+      const lit = clamp(1 - (t - T.tagTimes[i]) / .5); c.style.borderColor = t >= T.tagTimes[i] ? `rgba(200,255,0,${.14 + .7 * lit})` : ""; });
+    gcount.textContent = String(n);
+    const vc = eOut(seg(t, A.verdict - BEAT * .25, A.verdict + BEAT * .6));
+    vcard.style.opacity = vc > 0 ? 1 : 0; vcard.style.clipPath = `inset(0 ${100 - vc * 100}% 0 0 round 16px)`;
+    $(".vd", vcard).style.background = t >= A.verdict ? "transparent" : "transparent";
+    const done = seg(t, A.validated, A.validated + .25);
+    $(".run", bar).style.opacity = 1 - done; $(".done", bar).style.opacity = done;
+    $(".done", bar).style.transform = `translateY(${(1 - eOut(done)) * 10}px)`;
+    // Comet runs once around the border.
+    const cu = seg(t, A.comet, A.comet + BEAT * 2);
+    comet.style.opacity = cu > 0 && cu < 1 ? Math.sin(Math.PI * cu) : 0;
+    comet.style.background = `conic-gradient(from ${-20 + cu * 380}deg, transparent 0deg 290deg, rgba(200,255,0,.15) 310deg, #c8ff00 350deg, #fff 357deg, transparent 360deg)`;
+  } else show(con, false);
+
+  // ----- customize -----
+  const onB = t > A.floodPeak && t < A.panPipe;
+  [eyeB, h2B, lblBoard, lblLib, ...slots, ...libChips, ...bcards, fresh].forEach((e) => show(e, onB));
+  if (onB) {
+    headIn(eyeB, h2B, A.floodPeak + .04, t);
+    const lb = 1; lblBoard.style.opacity = lb; lblLib.style.opacity = eOut(seg(t, A.boardCards[3], A.boardCards[3] + .5));
+    const card0 = A.floodPeak + .3;
+    bcards.forEach((c, i) => { const t0 = i === 0 ? card0 : A.boardCards[i]; const s = S(t, t0, 2.8, .66);
+      c.style.opacity = t >= t0 ? 1 : 0; c.style.transform = `translateY(${(1 - s) * 50}px) scale(${.82 + .18 * s})`;
+      const glowAmt = clamp(1 - (t - t0) / .6);
+      c.style.boxShadow = t >= t0 ? `0 0 ${50 * glowAmt}px rgba(200,255,0,${.5 * glowAmt}), inset 0 0 0 1px rgba(200,255,0,${.08 + .3 * glowAmt})` : ""; });
+    slots.forEach((s) => (s.style.opacity = lb));
+    // Library chips; the first one is picked and flies into the board.
+    libChips.forEach((c, i) => { const s = S(t, A.boardCards[3] + i * .07, 2.6, .7); c.style.opacity = t >= A.boardCards[3] + i * .07 ? 1 : 0;
+      let dx = 0, dy = 0; if (i > 0) { const g = inOut3(seg(t, A.chipFly + .1, A.chipLand)); dx = G.libShift[i].x * g; dy = G.libShift[i].y * g; }
+      c.style.transform = `translate(${dx}px,${dy + (1 - s) * 30}px)`;
+      if (i === 0) { const hov = seg(t, A.pick + .3, A.click); c.style.borderColor = `rgba(200,255,0,${.14 + .6 * hov})`; c.style.color = hov > .5 ? "#f4f4f5" : ""; c.style.visibility = t < A.chipFly ? "visible" : "hidden";
+        const press = t >= A.click && t < A.chipFly ? 1 - .06 * Math.sin(Math.PI * seg(t, A.click, A.chipFly)) : 1; c.style.transform += ` scale(${press})`; } });
+    // The picked chip morphs into a skill card.
+    const fr = freshRect(t);
+    show(fresh, onB && t >= A.chipFly);
+    Object.assign(fresh.style, { left: fr.x + "px", top: fr.y + "px", width: fr.w + "px", height: fr.h + "px", borderRadius: lerp(31, 20, fr.u) + "px",
+      padding: `${lerp(0, 22, fr.u)}px ${lerp(24, 26, fr.u)}px` });
+    $("em", fresh).style.opacity = seg(fr.u, .6, 1); $("strong", fresh).style.fontSize = lerp(27, 36, fr.u) + "px";
+    const land = clamp(1 - (t - A.chipLand) / .7);
+    fresh.style.boxShadow = t >= A.chipLand ? `0 0 ${60 * land}px rgba(200,255,0,${.55 * land}), inset 0 0 0 1px rgba(200,255,0,.1)` : "";
+    $("strong", fresh).style.justifyContent = "flex-start";
+    fresh.style.justifyContent = fr.u < .6 ? "center" : "space-between";
+  }
+
+  // ----- tools -----
+  const onC = t > A.panTools && t < A.outro + 1;
+  [eyeC, h2C, ...pills].forEach((e) => show(e, onC));
+  if (onC) {
+    headIn(eyeC, h2C, A.panTools + BEAT * 1.2, t);
+    pills.forEach((p, i) => { const t0 = A.panTools + BEAT * 1.4 + i * .06; const s = S(t, t0, 2.4, .75);
+      p.style.opacity = t >= t0 ? 1 : 0; p.style.transform = `translateY(${(1 - s) * 40}px)`;
+      const on = t >= A.toolLights[i]; const flash = on ? clamp(1 - (t - A.toolLights[i]) / .6) : 0;
+      p.style.borderColor = on ? `rgba(200,255,0,${.45 + .5 * flash})` : "";
+      p.style.background = on ? `rgba(200,255,0,${.035 + .1 * flash})` : "";
+      p.style.color = on ? "#f4f4f5" : ""; $(".arw", p).style.color = on ? "#c8ff00" : "";
+      p.style.boxShadow = on ? `0 0 ${46 * flash}px rgba(200,255,0,${.4 * flash})` : "";
+      const bd = $(".badge", p); if (badgeText[i]) { const k = seg(t, A.toolLights[i] + .1, A.toolLights[i] + .4); bd.textContent = k > 0 ? badgeText[i] : ""; bd.style.opacity = k; bd.style.transform = `translateX(${(1 - eOut(k)) * 20}px)`; } });
+  }
+
+  // ----- pipeline -----
+  const onD = t > A.panPipe;
+  [eyeD, h2D, pline, ...nodes.flatMap((n) => [n.n, n.l])].forEach((e) => show(e, onD));
+  if (onD) {
+    headIn(eyeD, h2D, A.panPipe + BEAT * 1.2, t);
+    // Everything clears before the wordmark starts writing itself out of the dot.
+    const exitU = (i) => inOut3(seg(t, A.outro - .14 + i * .02, A.outro + .22 + i * .02));
+    nodes.forEach(({ n, l }, i) => { const t0 = A.panPipe + BEAT * 1.4 + i * .05; const s = S(t, t0, 2.4, .75);
+      const ex = exitU(i);
+      n.style.opacity = l.style.opacity = t >= t0 ? 1 - ex : 0;
+      const tr = `translateY(${(1 - s) * 40 + ex * 80}px)`; n.style.transform = tr; l.style.transform = tr;
+      const on = t >= A.pipeNodes[i]; const flash = on ? clamp(1 - (t - A.pipeNodes[i]) / .6) : 0;
+      n.style.borderColor = on ? "#c8ff00" : ""; n.style.color = on ? "#c8ff00" : "";
+      n.style.boxShadow = on ? `0 0 ${40 + 30 * flash}px rgba(200,255,0,${.25 + .35 * flash}), inset 0 0 18px rgba(200,255,0,.15)` : "";
+      l.style.color = on ? "#f4f4f5" : ""; });
+    const reach = (() => { let y = 0; for (let i = 1; i < 7; i++) y += nodeStep * eOut(seg(t, A.pipeNodes[i] - .14, A.pipeNodes[i])); return y; })();
+    $("i", pline).style.height = reach + "px";
+    const ex = exitU(3); pline.style.opacity = (t >= A.panPipe + BEAT * 1.4 ? 1 : 0) * (1 - ex); pline.style.transform = `translateY(${ex * 80}px)`;
+    [eyeD, h2D].forEach((e, i) => { const k = exitU(i - 2); e.style.opacity = 1 - k; e.style.transform = `translateY(${k * 80}px)`; });
+  }
+
+  // ----- protagonist (screen space) -----
+  let p, r = 11;
+  const born = S(t, -.05, 2.2, .6);
+  if (t < A.unfold) {
+    // The period of the opening title, then a flight to where the console unfolds.
+    const s0 = proj(cam, ...Object.values(dotWorld(A.unfold)));
+    const u = inOut3(seg(t, A.hookOut, A.unfold));
+    p = { x: lerp(hookG.dot.x, s0.x, u), y: lerp(hookG.dot.y, s0.y, u) - Math.sin(Math.PI * u) * 90 };
+    r = lerp(hookG.dot.r, 11 * cam.z, u);
+  } else if (t < A.outro) {
+    p = proj(cam, ...Object.values(dotWorld(t)));
+    r = 11 * cam.z;
+  } else {
+    const from = proj(cam, ...Object.values(dotWorld(A.outro)));
+    const u = inOut3(seg(t, A.outro, A.wordmark));
+    p = { x: lerp(from.x, endG.dot.x, u), y: lerp(from.y, endG.dot.y, u) - Math.sin(Math.PI * u) * 120 };
+    r = lerp(11 * cam.z, endG.dot.r, eOut(seg(t, A.outro + .2, A.wordmark + .3)));
+  }
+  // Blink like a caret while waiting.
+  let blink = 1;
+
+  if (t > A.typeEnd && t < A.drop) blink = .35 + .65 * (Math.cos(Math.PI * 2 * (t - A.typeEnd) / BEAT) > 0 ? 1 : 0);
+  const squash = t >= A.click && t < A.click + .25 ? 1 - .3 * Math.sin(Math.PI * seg(t, A.click, A.click + .25)) : 1;
+  const floodOn = t >= A.flood && t < A.floodPeak + .32;
+  dot.style.width = dot.style.height = r * 2 + "px";
+  dot.style.transform = `translate(${p.x - r}px,${p.y - r}px) scale(${1 / squash},${squash})`;
+  dot.style.opacity = floodOn ? 0 : blink;
+  const gl = t > A.outro ? 1.6 : 1;
+  dot.style.boxShadow = `0 0 ${r * 2.2}px ${r * .5}px rgba(200,255,0,.75), 0 0 ${r * 7 * gl}px ${r * 1.5}px rgba(200,255,0,.28)`;
+  // The dot lights the grid around it.
+  glow.style.background = `radial-gradient(circle ${380 * gl}px at ${p.x}px ${p.y}px, rgba(200,255,0,.13), transparent 70%)`;
+  const litMask = `radial-gradient(circle ${240 * gl}px at ${p.x}px ${p.y}px, #000, transparent 72%)`;
+  gridLit.style.webkitMaskImage = gridLit.style.maskImage = litMask;
+  grid.style.webkitMaskImage = grid.style.maskImage = `radial-gradient(ellipse 75% 60% at 50% ${LAND ? 45 : 40}%, #000 15%, transparent 78%)`;
+
+  // Click ripple.
+  const ru = seg(t, A.click, A.click + .55);
+  if (ru > 0 && ru < 1) { const rr = 14 + 90 * eOut(ru); show(ripple, true);
+    Object.assign(ripple.style, { width: rr * 2 + "px", height: rr * 2 + "px", transform: `translate(${p.x - rr}px,${p.y - rr}px)`, opacity: 1 - ru }); }
+  else show(ripple, false);
+
+  // The drop: lime floods out of the dot, then pulls back into the first card.
+  if (t >= A.flood && t < A.floodPeak + .45) {
+    show(flood, true);
+    const Rmax = Math.hypot(W, H) * 1.05;
+    let cx, cy, R;
+    const inOutCubic = (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+    if (t < A.floodPeak + .03) { const vd = proj(cam, G.vd.x + 7, G.vd.y + 7); cx = vd.x; cy = vd.y;
+      R = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) * 1.02 * inOutCubic(seg(t, A.flood, A.floodPeak)) + 12; }
+    else { // Pulls back into the first card, revealing the board around it.
+      const g = G.cards[0]; const c = proj(cam, g.x + g.w / 2, g.y + g.h / 2); cx = c.x; cy = c.y;
+      const far = Math.hypot(Math.max(cx, W - cx), Math.max(cy, H - cy)) * 1.02;
+      R = lerp(far, 0, eOut(seg(t, A.floodPeak + .06, A.floodPeak + .44))); }
+    flood.style.clipPath = `circle(${R}px at ${cx}px ${cy}px)`;
+  } else show(flood, false);
+
+  // ----- opening title -----
+  show(hook, t < A.unfold + .05);
+  if (t < A.unfold + .05) {
+    const k = (i) => in3(seg(t, A.hookOut + i * .06, A.hookOut + .38 + i * .06));
+    hookEye.style.opacity = 1 - k(0); hookEye.style.transform = `translateY(${-k(0) * 30}px)`;
+    $(".h2", hookT).style.transform = `translateY(${-k(1) * 112}%)`;
+    $(".hookS", hookS).style.transform = `translateY(${-k(2) * 112}%)`;
+  }
+  // ----- site label -----
+  const sb = eOut(seg(t, A.barIn, A.barIn + .6)), sbOut = in3(seg(t, A.outro - .2, A.outro + .2));
+  show(sitebar, t >= A.barIn && t < A.outro + .2);
+  sitebar.style.opacity = sb * (1 - sbOut); sitebar.style.transform = `translateY(${(1 - sb) * 16}px)`;
+
+  // ----- end card -----
+  const onE = t >= A.wordmark - .2;
+  show(end, onE);
+  if (onE) {
+    const wu = eOut(seg(t, A.wordmark - .05, A.wordmark + BEAT * 1.6));
+    wm.style.clipPath = `inset(-20px 0 -20px ${(1 - wu) * 100}%)`;
+    wm.style.transform = `translateX(${(1 - wu) * 40}px)`;
+    tagline.querySelectorAll(".l span").forEach((s, i) => { const k = eOut(seg(t, A.tagline + i * BEAT * .5, A.tagline + i * BEAT * .5 + .7)); s.style.transform = `translateY(${(1 - k) * 110}%)`; });
+    const ek = eOut(seg(t, A.tagline + BEAT * 1.5, A.tagline + BEAT * 1.5 + .7)); $("span", tagen).style.transform = `translateY(${(1 - ek) * 110}%)`;
+    const uk = S(t, A.url, 2.4, .7); url.style.opacity = t >= A.url ? 1 : 0; url.style.transform = `translateY(${(1 - uk) * 40}px) scale(${.92 + .08 * uk})`;
+    const sh = seg(t, A.url + .6, A.url + 1.5); $(".sheen", url).style.transform = `translateX(${-110 + 220 * cubic(sh)}%)`;
+  }
+
+  // ----- subtitles -----
+  subs.forEach((s) => { const inK = eOut(seg(t, s.from, s.from + .55)), outK = in3(seg(t, s.to - .36, s.to));
+    const on = t >= s.from && t <= s.to; s.box.style.visibility = on ? "visible" : "hidden";
+    s.zh.style.transform = `translateY(${(1 - inK) * 110 - outK * 110}%)`;
+    const inE = eOut(seg(t, s.from + .1, s.from + .65)); s.en.style.transform = `translateY(${(1 - inE) * 110 - outK * 110}%)`; });
+}
+function ttlChars(i) { return C.titleWords.slice(0, i + 1).join(" ").length; }
+function headIn(eye, h2, t0, t) {
+  const k = eOut(seg(t, t0, t0 + .6)); eye.style.opacity = k; eye.style.setProperty("--s", eOut(seg(t, t0 + .1, t0 + .9)));
+  const hk = eOut(seg(t, t0 + .08, t0 + .9)); $(".h2", h2).style.transform = `translateY(${(1 - hk) * 110}%)`;
+}
+
+window.seek = seek;
+// Screen-space motion (px) over one frame starting at t: drives how many
+// subframes the renderer takes for motion blur.
+window.motion = (t, dt = 1 / 60) => {
+  const c0 = camAt(t), c1 = camAt(t + dt);
+  const probe = [[0, 0], [W, 0], [0, H], [W, H], [W / 2, H / 2]].map(([x, y]) => ({ x: (x - W / 2) / c0.z + c0.x, y: (y - H / 2) / c0.z + c0.y }));
+  let d = 0;
+  for (const q of probe) { const a = proj(c0, q.x, q.y), b = proj(c1, q.x, q.y); d = Math.max(d, Math.hypot(b.x - a.x, b.y - a.y)); }
+  if (t + dt < A.outro) { const p0 = proj(c0, ...Object.values(dotWorld(t))), p1 = proj(c1, ...Object.values(dotWorld(t + dt)));
+    d = Math.max(d, Math.hypot(p1.x - p0.x, p1.y - p0.y)); }
+  return d;
+};
+window.ready = (async () => {
+  await document.fonts.load('500 30px JBM'); await document.fonts.load('400 30px JBM');
+  await document.fonts.load('600 40px Geist'); await document.fonts.load('600 40px "Noto Sans CJK SC"');
+  await document.fonts.ready;
+  measure(); measureEnd(); measureHook(); placeSubs();
+  seek(+(Q.get("t") || 0));
+  return { W, H, duration: T.duration, fps: T.fps };
+})();
+</script>
+</body>
+</html>

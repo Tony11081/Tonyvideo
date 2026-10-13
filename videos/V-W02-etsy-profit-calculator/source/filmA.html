@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Etsy 利润计算器 · 18s</title>
+<style>
+@font-face { font-family: Geist; src: url(fonts/Geist-Variable.woff2) format("woff2"); font-weight: 100 900; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: JBM; src: url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2"); font-weight: 500; }
+:root {
+  --bg: #050505; --text: #f4f4f5; --muted: #8a8a93; --dim: #55555c;
+  --line: rgba(255,255,255,.08); --line2: rgba(255,255,255,.14);
+  --lime: #c8ff00; --warn: #ffb224; --fx: #7c8db5; --cost: #52525b;
+  --chrome: linear-gradient(180deg, #fff 0%, #fff 38%, #a1a1aa 100%);
+  --sans: Geist, "Noto Sans CJK SC", "PingFang SC", sans-serif;
+  --mono: JBM, "Geist Mono", ui-monospace, "Noto Sans CJK SC", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); overflow: hidden; }
+#stage { position: relative; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+.layer { position: absolute; inset: 0; pointer-events: none; }
+#grid, #gridLit { background-image: radial-gradient(rgba(255,255,255,.16) 1.4px, transparent 1.8px); background-size: 26px 26px; }
+#gridLit { background-image: radial-gradient(rgba(200,255,0,.85) 1.6px, transparent 2px); }
+#grain { opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#vignette { background: radial-gradient(ellipse 85% 70% at 50% 45%, transparent 55%, rgba(0,0,0,.55) 100%); }
+#col { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; }
+#col > * { position: absolute; }
+.num { font-variant-numeric: tabular-nums; }
+
+.eyebrow { display: flex; align-items: center; gap: 14px; font: 500 20px/1 var(--mono); letter-spacing: .24em; color: var(--muted); }
+.eyebrow::before { content: ""; width: 28px; height: 2px; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.6); }
+.h2wrap { overflow: hidden; padding-bottom: .1em; }
+.h2 { display: block; font-family: var(--sans); font-size: 84px; font-weight: 650; letter-spacing: -.04em; line-height: 1.12;
+  background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+
+/* order card (hook) */
+.order { border-radius: 24px; border: 1px solid var(--line2); padding: 30px 34px 32px;
+  background: linear-gradient(180deg, rgba(24,24,27,.86), rgba(10,10,11,.94));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 40px 120px -30px rgba(0,0,0,.95); }
+.order .r1 { display: flex; justify-content: space-between; align-items: center; font: 500 21px/1 var(--mono); letter-spacing: .14em; color: var(--muted); }
+.order .paid { display: flex; align-items: center; gap: 12px; color: var(--lime); letter-spacing: .06em; font-family: var(--sans); font-weight: 600; font-size: 24px; }
+.order .paid i { width: 22px; height: 22px; display: inline-block; }
+.order .pn { margin-top: 26px; font-size: 38px; font-weight: 560; letter-spacing: -.015em; }
+.order .r3 { margin-top: 22px; display: flex; justify-content: space-between; align-items: flex-end; }
+.order .r3 span { font: 400 24px/1.2 var(--mono); color: var(--muted); }
+.order .r3 b { font: 650 64px/1 var(--sans); letter-spacing: -.03em; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tease { display: flex; gap: 12px; flex-wrap: wrap; }
+.tease span { height: 50px; display: flex; align-items: center; gap: 8px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--line2);
+  color: #a1a1aa; font-size: 24px; background: rgba(255,255,255,.02); }
+.tease span b { font: 500 22px/1 var(--mono); color: var(--warn); }
+
+/* header */
+.hlabel { font: 500 19px/1 var(--mono); letter-spacing: .2em; color: var(--muted); }
+.amtwrap { height: 92px; overflow: hidden; }
+.amt { position: absolute; left: 0; top: 0; font: 650 80px/1.1 var(--sans); letter-spacing: -.035em; white-space: nowrap;
+  background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.amt.lime { background: linear-gradient(180deg, #e9ff8a 0%, #c8ff00 60%, #9fcc00 100%); -webkit-background-clip: text; background-clip: text; }
+.hchip { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 20px; border-radius: 999px; border: 1px solid var(--line2);
+  font: 500 22px/1 var(--mono); color: #a1a1aa; white-space: nowrap; background: rgba(10,10,11,.7); }
+.hchip b { color: var(--text); font-weight: 500; }
+.sw { position: relative; width: 52px; height: 30px; border-radius: 999px; background: #27272a; border: 1px solid var(--line2); flex: none; }
+.sw i { position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #a1a1aa; }
+.tgl span.zh { font-family: var(--sans); font-weight: 600; font-size: 24px; color: var(--text); letter-spacing: 0; }
+.tgl em { font-style: normal; color: var(--warn); }
+
+/* bar */
+.bar { height: 64px; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,.03); box-shadow: inset 0 0 0 1px var(--line2); }
+.seg { position: absolute; top: 0; height: 100%; }
+.seg.etsy { background: var(--warn); }
+.seg.fx { background: var(--fx); }
+.seg.cost { background: var(--cost); }
+.seg.off { background: repeating-linear-gradient(135deg, #ffb224 0 10px, #e09312 10px 20px); }
+.seg + .seg { box-shadow: inset 2px 0 0 #050505; }
+.seg .fl { position: absolute; inset: 0; background: #fff; }
+.lime { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(180deg, #d8ff4d, #c8ff00 55%, #a8d800);
+  box-shadow: 0 0 30px rgba(200,255,0,.35); border-radius: 0 6px 6px 0; }
+.brk { height: 12px; border: 2px solid currentColor; border-top: 0; border-radius: 0 0 6px 6px; transform-origin: 50% 0; }
+.blab { font: 600 25px/1 var(--sans); white-space: nowrap; }
+.blab .m { font: 500 23px/1 var(--mono); }
+
+/* ledger */
+.row { display: flex; align-items: center; height: 52px; border-bottom: 1px solid var(--line); }
+.row .swc { width: 14px; height: 14px; border-radius: 4px; margin-right: 18px; flex: none; }
+.row .zh { font-size: 30px; font-weight: 560; }
+.row .d { font: 400 21px/1 var(--mono); color: var(--dim); margin-left: 16px; }
+.row .a { margin-left: auto; font: 500 30px/1 var(--mono); }
+.foot { font: 400 19px/1.55 var(--mono); color: var(--dim); white-space: nowrap; }
+
+/* compare */
+.cmp { border-radius: 22px; border: 1px solid var(--line2); padding: 28px 32px 30px; background: rgba(255,255,255,.025); }
+.cmp .t { font: 500 19px/1 var(--mono); letter-spacing: .2em; color: var(--muted); }
+.cmp .cr { margin-top: 26px; }
+.cmp .cl { display: flex; justify-content: space-between; align-items: baseline; }
+.cmp .cl span { font-size: 30px; font-weight: 560; }
+.cmp .cl b { font: 500 30px/1 var(--mono); }
+.cmp .track { position: relative; margin-top: 14px; height: 30px; }
+.cmp .track i { position: absolute; left: 0; top: 0; height: 100%; border-radius: 8px; display: block; }
+.cmp .note { margin-top: 26px; font: 400 20px/1.5 var(--mono); color: var(--dim); }
+
+/* end */
+.etitle { font-size: 112px; letter-spacing: -.045em; }
+.feat { display: flex; align-items: center; gap: 18px; font-size: 34px; font-weight: 520; color: #d4d4d8; white-space: nowrap; }
+.feat b { font: 500 30px/1 var(--mono); color: var(--lime); }
+.url { display: flex; align-items: center; gap: 14px; height: 84px; padding: 0 40px; border-radius: 999px; background: var(--lime); color: #050505;
+  font: 600 34px/1 Geist, sans-serif; letter-spacing: -.01em; overflow: hidden; box-shadow: 0 0 0 1px rgba(200,255,0,.4), 0 18px 60px -12px rgba(200,255,0,.55); }
+.url .sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.75) 48%, transparent 64%); }
+.path { font: 400 22px/1 var(--mono); color: var(--muted); }
+
+#dot { border-radius: 50%; background: var(--lime); }
+#ring { border-radius: 50%; border: 3px solid var(--lime); }
+.sub { position: absolute; left: 0; top: 0; }
+.subline { overflow: hidden; padding-bottom: .12em; }
+.subline span { display: inline-block; white-space: nowrap; }
+.sub .zh { font-size: 50px; font-weight: 600; letter-spacing: .01em; color: var(--text); }
+.sub .en { font-size: 28px; font-weight: 450; color: #a1a1aa; margin-top: 8px; letter-spacing: .005em; }
+.land .en span { white-space: normal; max-width: 520px; }
+.land .zh { font-size: 60px; line-height: 1.22; letter-spacing: -.005em; }
+.land .en { font-size: 30px; line-height: 1.35; margin-top: 18px; }
+#sitebar { position: absolute; display: flex; align-items: center; gap: 14px; height: 46px; padding: 0 20px 0 16px; border-radius: 999px;
+  border: 1px solid var(--line2); background: rgba(10,10,11,.6); font: 500 22px/1 var(--mono); color: #a1a1aa; white-space: nowrap; }
+#sitebar i { width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 10px rgba(200,255,0,.8); }
+#sitebar span { font-family: var(--sans); font-weight: 600; color: var(--text); font-size: 23px; }
+#sitebar b { font-weight: 500; color: var(--lime); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="layer" id="grid"></div>
+  <div class="layer" id="gridLit"></div>
+  <div class="layer" id="glow"></div>
+  <div id="col"></div>
+  <div id="sitebar"></div>
+  <div class="sub" id="sub"></div>
+  <div class="layer" id="vignette"></div>
+  <div class="layer" id="grain"></div>
+</div>
+<script src="timelineA.js"></script>
+<script>
+"use strict";
+const Q = new URLSearchParams(location.search);
+const W = +(Q.get("w") || 1080), H = +(Q.get("h") || 1920);
+const LAND = W > H;
+const A = T.at, BEAT = T.BEAT;
+const $ = (s, r = document) => r.querySelector(s);
+const el = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const stage = $("#stage"); stage.style.width = W + "px"; stage.style.height = H + "px";
+document.body.style.width = W + "px"; document.body.style.height = H + "px";
+
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const seg = (t, t0, t1) => clamp((t - t0) / (t1 - t0));
+const eOut = (u) => (u >= 1 ? 1 : 1 - Math.pow(2, -10 * u));
+const cubic = (u) => u * u * (3 - 2 * u);
+const inOut3 = (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const in3 = (u) => u * u * u;
+function spring(t, freq = 2.6, zeta = .72) {
+  if (t <= 0) return 0;
+  const w = 2 * Math.PI * freq, wd = w * Math.sqrt(1 - zeta * zeta);
+  return 1 - Math.exp(-zeta * w * t) * (Math.cos(wd * t) + (zeta * w / wd) * Math.sin(wd * t));
+}
+const S = (t, t0, f, z) => spring(t - t0, f, z);
+function show(e, on) { e.style.visibility = on ? "visible" : "hidden"; }
+const pos = (e, x, y) => { e.style.left = x + "px"; e.style.top = y + "px"; };
+
+// ---------- layout (vertical coordinates; horizontal scales the column) ----------
+const col = $("#col");
+const M = 80, CW = 920, PXU = CW / 30;
+const COL = LAND ? { s: .9, x: 150, y: -60 } : { s: 1, x: 0, y: 70 };
+col.style.transform = `translate(${COL.x}px,${COL.y}px) scale(${COL.s})`;
+const toScreen = (p) => ({ x: COL.x + p.x * COL.s, y: COL.y + p.y * COL.s });
+
+const eye = el("div", "eyebrow", col, "ETSY PROFIT CALCULATOR"); pos(eye, M, 130);
+const head = el("div", "", col); pos(head, M, 166);
+const hl = [el("div", "h2wrap", head, `<span class="h2">Etsy 卖一单 $30，</span>`), el("div", "h2wrap", head, `<span class="h2">到底赚多少？</span>`)];
+
+// Hook: the order
+const order = el("div", "order", col, `<div class="r1"><span>ETSY 新订单 · NEW ORDER</span><span class="paid"><i></i>已付款</span></div>
+  <div class="pn">Personalized Maple Cake Server Set</div>
+  <div class="r3"><span>商品 $25.00<br>买家运费 $5.00</span><b class="num">$30.00</b></div>`);
+pos(order, M, 560); order.style.width = CW + "px";
+const tease = el("div", "tease", col, ["上架费", "交易费", "支付处理费", "结汇", "成本"].map((s) => `<span><b>−</b>${s}</span>`).join(""));
+pos(tease, M, 870); tease.style.width = CW + "px";
+
+// Header
+const hlabel = el("div", "hlabel", col, "我还剩 · WHAT'S LEFT"); pos(hlabel, M, 372);
+const amtwrap = el("div", "amtwrap", col); pos(amtwrap, M, 398); amtwrap.style.width = "640px";
+const amtA = el("div", "amt num", amtwrap), amtB = el("div", "amt num", amtwrap);
+const hOrder = el("div", "hchip", col, `ETSY ORDER <b>$30.00</b>`);
+const hFx = el("div", "hchip", col, `USD → CNY <b>× 7.10</b>`);
+const hTgl = el("div", "hchip tgl", col, `<span class="zh">站外广告 15%</span><em>−$4.50</em><span class="sw"><i></i></span>`);
+
+// Bar
+const BY = 500;
+const bar = el("div", "bar", col); pos(bar, M, BY); bar.style.width = CW + "px";
+let xr = CW;
+const segs = T.cuts.map((c) => { xr -= c.usd * PXU; const s = el("div", "seg " + c.kind, bar, `<i class="fl"></i>`);
+  s.style.left = xr + "px"; s.style.width = c.usd * PXU + "px"; return { ...c, el: s, x: xr, w: c.usd * PXU }; });
+const PROFIT_W = xr, OFF_W = T.offsiteUsd * PXU;
+const offSeg = el("div", "seg off", bar, `<i class="fl"></i>`);
+offSeg.style.left = (PROFIT_W - OFF_W) + "px"; offSeg.style.width = OFF_W + "px";
+const lime = el("div", "lime", bar);
+
+// Brackets under the bar
+function bracket(color, x0, x1, html, align) {
+  const b = el("div", "brk", col); b.style.color = color; pos(b, M + x0, BY + 74); b.style.width = (x1 - x0) + "px";
+  const l = el("div", "blab", col, html); l.style.color = color; l._align = align; l._x0 = x0; l._x1 = x1; return { b, l };
+}
+const bEtsy = bracket("#ffb224", segs[2].x, CW, `Etsy <span class="m">−$4.40 · 14.7%</span>`, "right");
+const bCost = bracket("#a1a1aa", segs[6].x, segs[4].x + segs[4].w, `成本 <span class="m">−¥115.00</span>`, "start");
+const bProf = bracket("#c8ff00", 0, PROFIT_W, `利润 <span class="m">¥64.94 · 30.5%</span>`, "left");
+const bProfLab2 = el("div", "blab", col, `利润 <span class="m">¥33.31 · 15.6%</span>`); bProfLab2.style.color = "#c8ff00";
+
+// Ledger
+const LY = 664;
+const swc = { etsy: "#ffb224", fx: "#7c8db5", cost: "#71717a" };
+const rows = T.cuts.map((c, i) => { const r = el("div", "row", col, `<span class="swc" style="background:${swc[c.kind]}"></span><span class="zh">${c.zh}</span><span class="d">${c.d}</span><span class="a num">${c.amt}</span>`);
+  pos(r, M, LY + i * 52); r.style.width = CW + "px"; $(".a", r).style.color = c.kind === "etsy" ? "#ffb224" : "#d4d4d8"; return r; });
+const foot = el("div", "foot", col, `示例：售价 $25 + 买家运费 $5 · 收款地 中国 · 汇率 7.10<br>成本 ¥40 · 包装 ¥5 · 物流 ¥70 · 按网站利润计算器默认示例计算`);
+pos(foot, M, LY + 7 * 52 + 30);
+
+// Compare card (the twist)
+const cmp = el("div", "cmp", col, `<div class="t">同一单 $30 · SAME ORDER</div>
+  <div class="cr"><div class="cl"><span>普通订单</span><b class="num" style="color:#c8ff00">¥64.94 · 30.5%</b></div><div class="track"><i class="k1"></i></div></div>
+  <div class="cr"><div class="cl"><span>来自站外广告</span><b class="num">¥33.31 · 15.6%</b></div><div class="track"><i class="k0"></i><i class="k2"></i></div></div>
+  <div class="note">站外广告只对归因订单计费：12% 或 15%，单笔上限 $100</div>`);
+pos(cmp, M, LY); cmp.style.width = CW + "px";
+const k1 = $(".k1", cmp), k0 = $(".k0", cmp), k2 = $(".k2", cmp);
+k1.style.background = "#c8ff00"; k1.style.boxShadow = "0 0 24px rgba(200,255,0,.35)";
+k0.style.background = "repeating-linear-gradient(135deg, rgba(255,178,36,.55) 0 8px, transparent 8px 16px)"; k0.style.width = PROFIT_W + "px";
+k2.style.background = "#c8ff00";
+
+// End card
+const eEye = el("div", "eyebrow", col, "FREE · NO SIGN-UP"); pos(eEye, M, 520);
+const eT = el("div", "h2wrap", col, `<span class="h2 etitle">Etsy 利润计算器</span>`); pos(eT, M, 562);
+const feats = ["17 个收款地区的支付处理费率", "站外广告 12% / 15% 对比", "反推保本价和目标利润率售价"].map((s, i) => {
+  const f = el("div", "feat", col, `<b>✓</b>${s}`); pos(f, M, 760 + i * 66); return f; });
+const url = el("div", "url", col, `<span>openaigrowth.com</span><span style="font-size:30px">→</span><i class="sheen"></i>`); pos(url, M, 1006);
+const upath = el("div", "path", col, "/tools/etsy-profit-calculator"); pos(upath, M + 6, 1112);
+
+// Protagonist (in the column, so it scales with it)
+const ring = el("div", "", col); ring.id = "ring";
+const dot = el("div", "", col); dot.id = "dot";
+
+// Site label and subtitles (screen space)
+const sitebar = $("#sitebar");
+sitebar.innerHTML = `<i></i><span>Etsy 利润计算器</span><b>openaigrowth.com</b>`;
+if (LAND) pos(sitebar, COL.x + M * COL.s, 1000); else pos(sitebar, M, 1478);
+const sub = $("#sub");
+const subs = T.subtitles.map((s) => {
+  const box = el("div", "", sub); box.style.position = "absolute";
+  el("div", "subline zh", box, `<span>${LAND ? s.zhL : s.zh}</span>`);
+  el("div", "subline en", box, `<span>${s.en}</span>`);
+  return { ...s, box, zh: $(".zh span", box), en: $(".en span", box) };
+});
+
+// ---------- measured geometry ----------
+const G = {};
+function rel(e) { let x = 0, y = 0, n = e; while (n && n !== col) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; } return { x, y, w: e.offsetWidth, h: e.offsetHeight }; }
+function measure() {
+  const p = rel($(".paid i", order)); G.paid = { x: p.x + 11, y: p.y + 11 };
+  // header chips right-aligned to the bar
+  [hOrder, hFx, hTgl].forEach((c) => pos(c, M + CW - c.offsetWidth, 418));
+  // bracket labels
+  [bEtsy.l, bCost.l, bProf.l, bProfLab2].forEach((l) => {
+    const a = l._align || "left", x0 = l._x0 || 0, x1 = l._x1 || 0, w = l.offsetWidth;
+    const x = a === "right" ? M + x1 - w : a === "center" ? M + (x0 + x1) / 2 - w / 2 : a === "start" ? M + x0 + 56 : M;
+    pos(l, x, BY + 98); });
+  const et = $(".etitle", eT); G.period = { x: M + et.offsetWidth + 18 + 14, y: 562 + et.offsetHeight * .74, r: 14 };
+  subs.forEach((s) => { if (LAND) { s.box.classList.add("land"); s.box.style.left = "1310px"; s.box.style.width = "520px"; s.box.style.top = (H / 2 - s.box.offsetHeight / 2) + "px"; }
+    else { s.box.style.left = M + "px"; s.box.style.top = "1318px"; } });
+}
+
+// ---------- values over time ----------
+function limeW(t) {
+  let w = CW;
+  segs.forEach((c) => { w -= c.w * clamp(S(t, c.at, 3.0, .7), 0, 1.04); });
+  w -= OFF_W * clamp(S(t, A.offsite, 2.6, .66), 0, 1.06);
+  return w * eOut(seg(t, A.barGrow, A.barFull));
+}
+const amounts = [[A.barGrow + .2, "$30.00"], ...T.cuts.map((c) => [c.at, c.after])];
+amounts.splice(5, 0, [A.flip, "¥179.94"]);
+amounts.push([A.offsite, "¥33.31"]);
+function amountAt(t) { let i = -1; for (let j = 0; j < amounts.length; j++) if (t >= amounts[j][0]) i = j; return i; }
+const BAR_C = BY + 32;
+function dotAt(t) {
+  if (t < A.hookOut) return { ...G.paid, r: 11 };
+  const start = { x: M, y: BAR_C };
+  if (t < A.dotLand) { const u = inOut3(seg(t, A.hookOut, A.dotLand));
+    return { x: lerp(G.paid.x, start.x, u), y: lerp(G.paid.y, start.y, u) - Math.sin(Math.PI * u) * 120, r: 11 }; }
+  if (t < A.outro) return { x: M + Math.max(limeW(t), 0), y: BAR_C, r: 11 };
+  const cU = in3(seg(t, A.outro, A.outro + .4));
+  const from = { x: M + limeW(A.outro) * (1 - cU), y: BAR_C };
+  if (t < A.outro + .4) return { ...from, r: 11 + 3 * cU };
+  const u = inOut3(seg(t, A.outro + .4, A.endTitle + .25));
+  return { x: lerp(M, G.period.x, u), y: lerp(BAR_C, G.period.y, u) - Math.sin(Math.PI * u) * 140, r: lerp(14, G.period.r, u) };
+}
+
+// ---------- frame ----------
+const glow = $("#glow"), gridLit = $("#gridLit"), grid = $("#grid");
+function exitK(t, i = 0) { return in3(seg(t, A.outro - .1 + i * .03, A.outro + .3 + i * .03)); }
+function fadeUp(e, t0, t, dy = 26) { const k = eOut(seg(t, t0, t0 + .5)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * dy}px)`; return k; }
+function seek(t) {
+  const out = t >= A.outro - .1;
+  // headline: stays from frame 0, exits at the outro
+  [eye, ...hl].forEach((e, i) => { const k = exitK(t, i); e.style.opacity = 1 - k; e.style.transform = `translateY(${-k * 60}px)`; });
+  show(head, t < A.outro + .5); show(eye, t < A.outro + .5);
+
+  // hook
+  const hk = in3(seg(t, A.hookOut - .05, A.hookOut + .35));
+  show(order, t < A.hookOut + .4); show(tease, t < A.hookOut + .4);
+  order.style.opacity = 1 - hk; order.style.transform = `translateY(${-hk * 70}px) scale(${1 - .04 * hk})`;
+  const tk = in3(seg(t, A.hookOut + .05, A.hookOut + .4)); tease.style.opacity = 1 - tk; tease.style.transform = `translateY(${-tk * 50}px)`;
+
+  // header
+  const hOn = t >= A.barGrow && t < A.outro + .5;
+  [hlabel, amtwrap].forEach((e) => show(e, hOn));
+  if (hOn) {
+    const k = eOut(seg(t, A.barGrow, A.barGrow + .5)), ex = exitK(t, 2);
+    hlabel.style.opacity = k * (1 - ex); amtwrap.style.opacity = 1 - ex; amtwrap.style.transform = `translateY(${-ex * 50}px)`;
+    const i = amountAt(t);
+    const u = i >= 0 ? eOut(seg(t, amounts[i][0], amounts[i][0] + .32)) : 0;
+    amtA.textContent = i >= 0 ? amounts[i][1] : ""; amtB.textContent = i > 0 ? amounts[i - 1][1] : "";
+    amtA.style.transform = `translateY(${(1 - u) * 100}%)`; amtB.style.transform = `translateY(${-u * 100}%)`;
+    const isLime = t >= A.result;
+    amtA.classList.toggle("lime", isLime); amtB.classList.toggle("lime", isLime && t >= A.offsite);
+    const pulse = t >= A.result ? Math.exp(-(t - A.result) / .35) : 0;
+    amtwrap.style.filter = pulse > .01 ? `drop-shadow(0 0 ${24 * pulse}px rgba(200,255,0,${.8 * pulse}))` : "";
+  }
+  // header chips
+  const chip = (c, t0, t1) => { const on = t >= t0 && t < t1 + .3; show(c, on); if (!on) return;
+    const k = eOut(seg(t, t0, t0 + .45)), x = in3(seg(t, t1 - .05, t1 + .25)); c.style.opacity = k * (1 - x); c.style.transform = `translateY(${(1 - k) * 18 - x * 18}px)`; };
+  chip(hOrder, A.barFull - .1, A.flip - .3); chip(hFx, A.flip, A.toggleIn - .3); chip(hTgl, A.toggleIn, A.outro);
+  const fxFlash = clamp(1 - (t - A.flip) / .7); hFx.style.borderColor = t >= A.flip ? `rgba(200,255,0,${.14 + .7 * fxFlash})` : "";
+  const on = S(t, A.offsite, 3.2, .7);
+  $(".sw i", hTgl).style.transform = `translateX(${22 * clamp(on, 0, 1.05)}px)`;
+  $(".sw i", hTgl).style.background = t >= A.offsite ? "#050505" : "#a1a1aa";
+  $(".sw", hTgl).style.background = t >= A.offsite ? "#ffb224" : "#27272a";
+  $("em", hTgl).style.opacity = seg(t, A.offsite + .05, A.offsite + .3);
+  const tglPulse = t >= A.toggleIn && t < A.offsite ? .5 + .5 * Math.cos(Math.PI * 2 * (t - A.toggleIn) / BEAT) : 0;
+  hTgl.style.borderColor = t >= A.offsite ? "rgba(255,178,36,.7)" : `rgba(255,178,36,${.14 + .5 * tglPulse})`;
+
+  // bar
+  const barOn = t >= A.barGrow && t < A.outro + .5;
+  show(bar, barOn);
+  if (barOn) {
+    const g = eOut(seg(t, A.barGrow, A.barFull));
+    const ex = in3(seg(t, A.outro + .3, A.outro + .5));
+    bar.style.clipPath = `inset(0 ${(1 - g) * CW}px 0 0 round 14px)`; bar.style.opacity = 1 - ex;
+    const lw = Math.max(0, limeW(t) * (1 - in3(seg(t, A.outro, A.outro + .4))));
+    lime.style.width = lw + "px";
+    segs.forEach((c) => { const v = t >= c.at - .01; c.el.style.opacity = v ? 1 - in3(seg(t, A.outro, A.outro + .3)) : 0;
+      $(".fl", c.el).style.opacity = v ? clamp(1 - (t - c.at) / .45) : 0; });
+    offSeg.style.opacity = t >= A.offsite - .01 ? 1 - in3(seg(t, A.outro, A.outro + .3)) : 0;
+    $(".fl", offSeg).style.opacity = t >= A.offsite ? clamp(1 - (t - A.offsite) / .5) : 0;
+    lime.style.boxShadow = t >= A.result ? `0 0 ${30 + 40 * Math.exp(-(t - A.result) / .5)}px rgba(200,255,0,${.35 + .4 * Math.exp(-(t - A.result) / .5)})` : "";
+  }
+  // brackets
+  const brk = (B, t0, t1, wFn) => { const onB = t >= t0 && t < t1; show(B.b, onB); show(B.l, onB); if (!onB) return;
+    const k = eOut(seg(t, t0, t0 + .5)), x = in3(seg(t, t1 - .35, t1));
+    B.b.style.transform = `scaleX(${k})`; B.b.style.opacity = 1 - x; if (wFn) B.b.style.width = wFn() + "px";
+    const lk = eOut(seg(t, t0 + .12, t0 + .6)); B.l.style.opacity = lk * (1 - x); B.l.style.transform = `translateY(${(1 - lk) * 14}px)`; };
+  brk(bEtsy, A.etsyBracket, A.outro + .2); brk(bCost, A.costBracket, A.outro + .2);
+  brk(bProf, A.result, A.outro + .2, () => Math.max(limeW(t), 0));
+  // profit label swaps to the offsite figure
+  const sw = seg(t, A.offsite + .1, A.offsite + .4);
+  bProf.l.style.opacity = (+bProf.l.style.opacity || 0) * (1 - sw);
+  show(bProfLab2, t >= A.offsite + .1 && t < A.outro + .2);
+  bProfLab2.style.opacity = eOut(sw) * (1 - in3(seg(t, A.outro - .15, A.outro + .2))); bProfLab2.style.transform = `translateY(${(1 - eOut(sw)) * 14}px)`;
+
+  // ledger
+  const ledOut = in3(seg(t, A.offsite + .15, A.compare + .1));
+  rows.forEach((r, i) => { const c = T.cuts[i]; const onR = t >= c.at && ledOut < 1; show(r, onR); if (!onR) return;
+    const k = eOut(seg(t, c.at, c.at + .45)); r.style.opacity = k * (1 - ledOut);
+    r.style.transform = `translateX(${(1 - k) * -30}px) translateY(${ledOut * -24}px)`;
+    const fl = clamp(1 - (t - c.at) / .6); r.style.background = `rgba(${c.kind === "etsy" ? "255,178,36" : "255,255,255"},${.08 * fl})`; });
+  show(foot, t >= A.barFull && t < A.outro + .3);
+  foot.style.opacity = eOut(seg(t, A.barFull, A.barFull + .6)) * .9 * (1 - exitK(t, 4));
+  foot.style.transform = `translateY(${exitK(t, 4) * 40}px)`;
+  // the footnote moves below the compare card for the twist
+  const fy = LY + 7 * 52 + 30, fy2 = LY + 352 + 30, fm = inOut3(seg(t, A.offsite + .2, A.compare + .3));
+  foot.style.top = lerp(fy, fy2, fm) + "px";
+
+  // compare
+  const cOn = t >= A.compare && t < A.outro + .4;
+  show(cmp, cOn);
+  if (cOn) { const k = S(t, A.compare, 2.4, .75), ex = exitK(t, 3);
+    cmp.style.opacity = clamp(k) * (1 - ex); cmp.style.transform = `translateY(${(1 - k) * 50 - ex * 40}px)`;
+    k1.style.width = PROFIT_W * eOut(seg(t, A.compare + .15, A.compare + .7)) + "px";
+    k2.style.width = (PROFIT_W - OFF_W) * eOut(seg(t, A.compare + .45, A.compare + 1.0)) + "px";
+    k0.style.opacity = seg(t, A.compare + .9, A.compare + 1.3); }
+
+  // end card
+  const eOn = t >= A.endTitle - .2;
+  [eEye, eT, ...feats, url, upath].forEach((e) => show(e, eOn));
+  if (eOn) {
+    fadeUp(eEye, A.endTitle - .1, t, 14);
+    const wu = eOut(seg(t, A.endTitle - .05, A.endTitle + BEAT * 1.6));
+    $(".etitle", eT).style.clipPath = `inset(-20px ${(1 - wu) * 100}% -20px 0)`;
+    $(".etitle", eT).style.transform = `translateX(${(1 - wu) * -30}px)`;
+    feats.forEach((f, i) => { const k = eOut(seg(t, A.features[i], A.features[i] + .5)); f.style.opacity = k; f.style.transform = `translateX(${(1 - k) * -30}px)`; });
+    const uk = S(t, A.url, 2.4, .7); url.style.opacity = t >= A.url ? 1 : 0; url.style.transform = `translateY(${(1 - uk) * 40}px) scale(${.92 + .08 * uk})`;
+    const sh = seg(t, A.url + .6, A.url + 1.5); $(".sheen", url).style.transform = `translateX(${-110 + 220 * cubic(sh)}%)`;
+    fadeUp(upath, A.url + .25, t, 12);
+  }
+
+  // protagonist
+  const d = dotAt(t);
+  dot.style.width = dot.style.height = d.r * 2 + "px";
+  dot.style.transform = `translate(${d.x - d.r}px,${d.y - d.r}px)`;
+  const gl = t > A.outro ? 1.6 : 1;
+  dot.style.boxShadow = `0 0 ${d.r * 2.2}px ${d.r * .5}px rgba(200,255,0,.75), 0 0 ${d.r * 7 * gl}px ${d.r * 1.5}px rgba(200,255,0,.28)`;
+  // "paid" pulses in the hook; a ring at every cut
+  const rings = [BEAT * .5, BEAT * 2, ...T.cuts.map((c) => c.at), A.offsite, A.endTitle + .25];
+  let rr = 0, ro = 0; for (const r0 of rings) { const u = seg(t, r0, r0 + .55); if (u > 0 && u < 1) { rr = d.r + 6 + 60 * eOut(u); ro = (1 - u) * .9; } }
+  show(ring, ro > 0); if (ro > 0) { ring.style.width = ring.style.height = rr * 2 + "px"; ring.style.transform = `translate(${d.x - rr}px,${d.y - rr}px)`; ring.style.opacity = ro;
+    ring.style.borderColor = t >= A.offsite && t < A.offsite + .6 ? "#ffb224" : ""; }
+  const sp = toScreen(d), sr = d.r * COL.s;
+  glow.style.background = `radial-gradient(circle ${380 * gl}px at ${sp.x}px ${sp.y}px, rgba(200,255,0,.13), transparent 70%)`;
+  const litMask = `radial-gradient(circle ${240 * gl}px at ${sp.x}px ${sp.y}px, #000, transparent 72%)`;
+  gridLit.style.webkitMaskImage = gridLit.style.maskImage = litMask;
+  grid.style.webkitMaskImage = grid.style.maskImage = `radial-gradient(ellipse 75% 60% at 50% ${LAND ? 45 : 40}%, #000 15%, transparent 78%)`;
+
+  // site label
+  const sbOut = in3(seg(t, A.outro - .2, A.outro + .2));
+  show(sitebar, t < A.outro + .2); sitebar.style.opacity = 1 - sbOut;
+
+  // subtitles
+  subs.forEach((s) => { const inK = eOut(seg(t, s.from, s.from + .55)), outK = in3(seg(t, s.to - .36, s.to));
+    const onS = t >= s.from && t <= s.to; s.box.style.visibility = onS ? "visible" : "hidden";
+    s.zh.style.transform = `translateY(${(1 - inK) * 110 - outK * 110}%)`;
+    const inE = eOut(seg(t, s.from + .1, s.from + .65)); s.en.style.transform = `translateY(${(1 - inE) * 110 - outK * 110}%)`; });
+}
+
+window.seek = seek;
+// Motion (screen px per frame) for the renderer's adaptive motion blur.
+window.motion = (t, dt = 1 / 60) => {
+  const a = toScreen(dotAt(t)), b = toScreen(dotAt(t + dt));
+  let d = Math.hypot(b.x - a.x, b.y - a.y);
+  // exits and the hook lift move whole blocks
+  if ((t > A.hookOut - .1 && t < A.hookOut + .45) || (t > A.outro - .15 && t < A.outro + .6)) d = Math.max(d, 24);
+  return d;
+};
+window.ready = (async () => {
+  await document.fonts.load('500 30px JBM'); await document.fonts.load('400 30px JBM');
+  await document.fonts.load('600 40px Geist'); await document.fonts.load('600 40px "Noto Sans CJK SC"');
+  await document.fonts.ready;
+  measure();
+  seek(+(Q.get("t") || 0));
+  return { W, H, duration: T.duration, fps: T.fps };
+})();
+</script>
+</body>
+</html>
